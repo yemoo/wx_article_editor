@@ -25,7 +25,7 @@ function crc32(pathname) {
     return i + "&s=" + o;
 }
 
-const ONLINE = true;
+const ONLINE = false;
 
 // demo page
 app.get('/', (req, res) => res.redirect(ONLINE ? 'demo_online.html' : 'demo.html'));

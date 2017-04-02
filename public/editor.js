@@ -506,7 +506,7 @@ $(function () {
         videoEditor = createDialog({
             id: 'video-panel',
             header: '插入视频',
-            body: '<input type="text" placeholder="请输入优酷/土豆/腾讯视频地址">',
+            body: '<input type="text" placeholder="支持优酷/土豆/腾讯/头条视频地址">',
             footer: '<button class="btn-cancel">取消</button><button class="btn-submit">提交</button>'
         });
 
@@ -550,7 +550,7 @@ $(function () {
                 }
             } else if (videoUrl.indexOf('365yg.com') > -1 || videoUrl.indexOf('toutiao.com') > -1) { // 今日头条
                 isMp4 = true;
-                videoUrl = 'http://localhost:3000/toutiao-video-url?url=' + encodeURIComponent(videoUrl);
+                videoUrl = BASE_URL + '/toutiao-video-url?url=' + encodeURIComponent(videoUrl);
             }
 
             var html;
