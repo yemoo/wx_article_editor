@@ -1,12 +1,12 @@
 var express = require('express');
 var app = express();
 var fetch = require('node-fetch');
-
-var staticPath = __dirname + "/public";
-
 var bodyParser = require('body-parser');
-var multer = require('multer'); // v1.0.5
-// var upload = multer({dest: staticPath + '/upload/'});
+// var multer = require('multer'); // v1.0.5
+
+const STATIC_PATH = __dirname + "/public";
+const PORT = process.env.PORT || 3000;
+const ONLINE = PORT == 4000;
 
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
@@ -25,15 +25,17 @@ function crc32(pathname) {
     return i + "&s=" + o;
 }
 
-const ONLINE = true;
-
 // demo page
-app.get('/', (req, res) => res.redirect(ONLINE ? 'demo_online.html' : 'demo.html'));
+app.get('/', (req, res) => res.redirect('demo.html'));
 
 if(ONLINE) {
     app.get('/demo.html', (req, res) => res.redirect('demo_online.html'));
     app.get('/editor.js', (req, res) => res.redirect('editor.min.js'));
     app.get('/editor.css', (req, res) => res.redirect('editor.min.css'));
+} else {
+    app.get('/demo_online.html', (req, res) => res.redirect('demo.html'));
+    app.get('/editor.min.js', (req, res) => res.redirect('editor.js'));
+    app.get('/editor.min.css', (req, res) => res.redirect('editor.css'));
 }
 
 // 今日头条视频
@@ -50,7 +52,9 @@ app.get('/toutiao-video-url', function (request, response) {
         .then(res => res.json())
         .then(json => {
             var videoUrl = json.data.video_list.video_1.main_url;
-            return new Buffer(videoUrl, 'base64').toString();
+            videoUrl = new Buffer(videoUrl, 'base64').toString();
+            console.log(videoUrl);
+            return videoUrl;
         })
         .then(videoUrl => fetch(videoUrl))
         .then(res => res.body.pipe(response))
@@ -62,8 +66,8 @@ app.post('/save', function (req, res) {
     res.send(req.body);
 });
 
-app.use(express.static(staticPath));
+app.use(express.static(STATIC_PATH));
 
-app.listen(3000, function () {
-    console.log('Example app listening on port 3000!')
+app.listen(PORT, function () {
+    console.log('Example app listening on port '+PORT+'!')
 });
