@@ -61,20 +61,27 @@ app.get('/toutiao-video-url', function (request, response) {
 // 今日头条视频封面
 app.get('/toutiao-video-poster', function (request, response) {
     var originUrl = request.query.url;
-    if (/item\/(\d+)\//.test(originUrl) || /\/i(\d+)\//.test(originUrl)) {
-        var dataUrl = 'https://m.365yg.com/i' + RegExp.$1 + "/info/";
-        fetch(dataUrl)
-            .then(res => res.json())
-            .then(json => {
-                var posterURL = json.data.content;
-                posterURL = /tt-poster='([^']+)'/.test(posterURL) ? RegExp.$1 : '';
-                return fetch(posterURL);
-            })
-            .then(res => res.body.pipe(response))
-            .catch(err => response.send(''));
-    } else {
-        response.send('');
-    }
+    var opts = {
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1'
+        }
+    };
+
+    fetch(originUrl, opts).then(res => res.text())
+        .then(text => {
+            if (/share_url:'http:\/\/www\.toutiao\.com\/item\/(\d+)\/'/.test(text) || /item_id = "(\d+)"/.test(text)) {
+                return fetch('https://m.365yg.com/i' + RegExp.$1 + "/info/");
+            }
+            throw new Error('无法解析');
+        })
+        .then(res => res.json())
+        .then(json => {
+            var posterURL = json.data.content;
+            posterURL = /tt-poster='([^']+)'/.test(posterURL) ? RegExp.$1 : '';
+            return fetch(posterURL);
+        })
+        .then(res => res.body.pipe(response))
+        .catch(err => response.send(''));
 });
 
 // 保存数据
