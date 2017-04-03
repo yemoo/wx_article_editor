@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var fetch = require('node-fetch');
+var request = require('request');
 
 const STATIC_PATH = __dirname + "/public";
 const PORT = process.env.PORT || 3000;
@@ -40,9 +41,6 @@ app.get('/toutiao-video-url', function (req, resp) {
     var headers = req.headers;
     delete headers.referer;
     delete headers.host;
-    var opts = {
-        headers: headers    // 使用浏览器自身发起的 range header，否则在手机上视频无法加载
-    };
 
     fetch(originUrl).then(res => res.text())
         .then(text => {
@@ -53,8 +51,12 @@ app.get('/toutiao-video-url', function (req, resp) {
         })
         .then(url => fetch(url))
         .then(res => res.json())
-        .then(json => fetch(new Buffer(json.data.video_list.video_1.main_url, 'base64').toString(), opts))
-        .then(res => res.body.pipe(resp))
+        .then(json => new Buffer(json.data.video_list.video_1.main_url, 'base64').toString())
+        .then(videoUrl => request({
+            url: videoUrl,
+            // 使用浏览器自身发起的 range header，否则在手机上视频无法加载
+            headers: headers
+        }).pipe(resp))
         .catch(err => resp.send(err.toString()));
 });
 // 今日头条视频封面
