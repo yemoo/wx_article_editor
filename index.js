@@ -1,15 +1,10 @@
 var express = require('express');
 var app = express();
 var fetch = require('node-fetch');
-var bodyParser = require('body-parser');
-// var multer = require('multer'); // v1.0.5
 
 const STATIC_PATH = __dirname + "/public";
 const PORT = process.env.PORT || 3000;
 const ONLINE = PORT == 4000;
-
-app.use(bodyParser.json()); // for parsing application/json
-app.use(bodyParser.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
 
 function crc32(pathname) {
     var n = function () {
@@ -39,8 +34,16 @@ if (ONLINE) {
 }
 
 // 今日头条视频
-app.get('/toutiao-video-url', function (request, response) {
-    var originUrl = request.query.url;
+app.get('/toutiao-video-url', function (req, resp) {
+    var originUrl = req.query.url;
+
+    var headers = req.headers;
+    delete headers.referer;
+    delete headers.host;
+    var opts = {
+        headers: headers    // 使用浏览器自身发起的 range header，否则在手机上视频无法加载
+    };
+
     fetch(originUrl).then(res => res.text())
         .then(text => {
             if (/videoid:'(\w+)'/.test(text)) {
@@ -50,15 +53,9 @@ app.get('/toutiao-video-url', function (request, response) {
         })
         .then(url => fetch(url))
         .then(res => res.json())
-        .then(json => fetch(new Buffer(json.data.video_list.video_1.main_url, 'base64').toString()))
-        .then(res => {
-            var headers = res.headers.raw();
-            Object.keys(headers).forEach(name => {
-               response.set(name, headers[name].join(','))
-            });
-            res.body.pipe(response);
-        })
-        .catch(err => response.send(err.toString()));
+        .then(json => fetch(new Buffer(json.data.video_list.video_1.main_url, 'base64').toString(), opts))
+        .then(res => res.body.pipe(resp))
+        .catch(err => resp.send(err.toString()));
 });
 // 今日头条视频封面
 app.get('/toutiao-video-poster', function (request, response) {

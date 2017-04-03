@@ -553,7 +553,6 @@ $(function () {
                 isMp4 = true;
                 posterUrl = BASE_URL + '/toutiao-video-poster?url=' + encodeURIComponent(videoUrl);
                 videoUrl = BASE_URL + '/toutiao-video-url?url=' + encodeURIComponent(videoUrl);
-                $('.n_content').prepend(videoUrl);
             }
 
             var html;
