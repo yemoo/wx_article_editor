@@ -51,11 +51,17 @@ app.get('/toutiao-video-url', function (request, response) {
         .then(url => fetch(url))
         .then(res => res.json())
         .then(json => {
-            var videoUrl = json.data.video_list.video_1.main_url;
-            videoUrl = new Buffer(videoUrl, 'base64').toString();
-            return fetch(videoUrl);
+            var videoData = json.data.video_list.video_1;
+            // response.type('video/' + (videoData.vtype || 'mp4'));
+            return fetch(new Buffer(videoData.main_url, 'base64').toString());
         })
-        .then(res => res.body.pipe(response))
+        .then(res => {
+            var headers = res.headers.raw();
+            Object.keys(headers).forEach(name => {
+               response.set(name, headers[name].join(','))
+            });
+            res.body.pipe(response);
+        })
         .catch(err => response.send(err.toString()));
 });
 // 今日头条视频封面
