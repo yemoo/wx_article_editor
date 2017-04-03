@@ -88,7 +88,8 @@
     margin-left: 5px;
 }
 .dialog .footer{
-    border-top: 1px solid #ccc;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
     width: 100%;
 }
 .dialog .footer button{
@@ -159,7 +160,7 @@
     width: 50%;
 }
 #text-panel .footer .btn-cancel{
-    border-right: 1px solid #ccc;
+    border-right: 1px solid #ddd;
 }
 #text-panel .footer .btn-submit{
     color: #F1983F;
@@ -282,7 +283,7 @@
     width: 50%;
 }
 #img-panel .footer .btn-cancel{
-    border-right: 1px solid #ccc;
+    border-right: 1px solid #ddd;
 }
 #img-panel .footer .btn-submit{
     color: #F1983F;
@@ -303,7 +304,7 @@
     width: 50%;
 }
 #video-panel .footer .btn-cancel{
-    border-right: 1px solid #ccc;
+    border-right: 1px solid #ddd;
 }
 #video-panel .footer .btn-submit{
     color: #F1983F;

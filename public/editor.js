@@ -553,11 +553,12 @@ $(function () {
                 isMp4 = true;
                 posterUrl = BASE_URL + '/toutiao-video-poster?url=' + encodeURIComponent(videoUrl);
                 videoUrl = BASE_URL + '/toutiao-video-url?url=' + encodeURIComponent(videoUrl);
+                $('.n_content').prepend(videoUrl);
             }
 
             var html;
             if (isMp4) {
-                html = '<video type="video/mp4" src="' + videoUrl + '" preload="true" controls webkit-playsinline playsinline style="max-width: 100%;" preload="true" webkit-playsinline poster="' + posterUrl + '"></video>';
+                html = '<video src="' + videoUrl + '" preload="true" controls webkit-playsinline playsinline style="max-width: 100%;" preload="true" webkit-playsinline poster="' + posterUrl + '"></video>';
             } else {
                 html = '<iframe width="100%" src="' + videoUrl + '" frameborder="0" style="max-width: 100%;"></iframe>';
             }
