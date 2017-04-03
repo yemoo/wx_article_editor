@@ -525,6 +525,7 @@ $(function () {
         // 提交
         videoEditor.footer.on('click', '.btn-submit', function () {
             var videoUrl = video.val();
+            var posterUrl;
             var isMp4;
             // 优酷
             if (videoUrl.indexOf('youku.com') > -1) {
@@ -544,19 +545,19 @@ $(function () {
             } else if (videoUrl.indexOf('v.qq.com') > -1) {
                 if (/\/(\w{11})\.html$/.test(videoUrl)) {
                     videoUrl = 'http://v.qq.com/iframe/player.html?vid=' + RegExp.$1;
-                    console.log(videoUrl);
                 } else {
                     alert('你输入的腾讯视频地址无法解析！');
                     return false;
                 }
             } else if (videoUrl.indexOf('365yg.com') > -1 || videoUrl.indexOf('toutiao.com') > -1) { // 今日头条
                 isMp4 = true;
+                posterUrl = BASE_URL + '/toutiao-video-poster?url=' + encodeURIComponent(videoUrl);
                 videoUrl = BASE_URL + '/toutiao-video-url?url=' + encodeURIComponent(videoUrl);
             }
 
             var html;
-            if(isMp4){
-                html = '<video src="' + videoUrl + '" preload="true" controls="" style="max-width: 100%;" preload="none" webkit-playsinline></video>';
+            if (isMp4) {
+                html = '<video type="video/mp4" src="' + videoUrl + '" preload="true" controls webkit-playsinline playsinline style="max-width: 100%;" preload="true" webkit-playsinline poster="' + posterUrl + '"></video>';
             } else {
                 html = '<iframe width="100%" src="' + videoUrl + '" frameborder="0" style="max-width: 100%;"></iframe>';
             }

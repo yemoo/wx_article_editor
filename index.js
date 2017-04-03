@@ -28,7 +28,7 @@ function crc32(pathname) {
 // demo page
 app.get('/', (req, res) => res.redirect('demo.html'));
 
-if(ONLINE) {
+if (ONLINE) {
     app.get('/demo.html', (req, res) => res.redirect('demo_online.html'));
     app.get('/editor.js', (req, res) => res.redirect('editor.min.js'));
     app.get('/editor.css', (req, res) => res.redirect('editor.min.css'));
@@ -53,12 +53,28 @@ app.get('/toutiao-video-url', function (request, response) {
         .then(json => {
             var videoUrl = json.data.video_list.video_1.main_url;
             videoUrl = new Buffer(videoUrl, 'base64').toString();
-            console.log(videoUrl);
-            return videoUrl;
+            return fetch(videoUrl);
         })
-        .then(videoUrl => fetch(videoUrl))
         .then(res => res.body.pipe(response))
         .catch(err => response.send(err.toString()));
+});
+// 今日头条视频封面
+app.get('/toutiao-video-poster', function (request, response) {
+    var originUrl = request.query.url;
+    if (/item\/(\d+)\//.test(originUrl) || /\/i(\d+)\//.test(originUrl)) {
+        var dataUrl = 'https://m.365yg.com/i' + RegExp.$1 + "/info/";
+        fetch(dataUrl)
+            .then(res => res.json())
+            .then(json => {
+                var posterURL = json.data.content;
+                posterURL = /tt-poster='([^']+)'/.test(posterURL) ? RegExp.$1 : '';
+                return fetch(posterURL);
+            })
+            .then(res => res.body.pipe(response))
+            .catch(err => response.send(''));
+    } else {
+        response.send('');
+    }
 });
 
 // 保存数据
@@ -69,5 +85,5 @@ app.post('/save', function (req, res) {
 app.use(express.static(STATIC_PATH));
 
 app.listen(PORT, function () {
-    console.log('Example app listening on port '+PORT+'!')
+    console.log('Example app listening on port ' + PORT + '!')
 });
