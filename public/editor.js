@@ -513,6 +513,7 @@ $(function () {
         // 添加视频
         menus.on('click', '.btn-add-video:not(.disabled)', function () {
             videoEditor.open();
+            video.val('');
         });
 
         var video = videoEditor.body.find('input');
@@ -555,7 +556,7 @@ $(function () {
 
             var html;
             if(isMp4){
-                html = '<video src="' + videoUrl + '" controls="" style="max-width: 100%;" preload="true" webkit-playsinline="webkit-playsinline" playsinline="playsinline"></video>';
+                html = '<video src="' + videoUrl + '" preload="true" controls="" style="max-width: 100%;" preload="none" webkit-playsinline></video>';
             } else {
                 html = '<iframe width="100%" src="' + videoUrl + '" frameborder="0" style="max-width: 100%;"></iframe>';
             }
