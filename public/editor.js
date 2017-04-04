@@ -80,24 +80,35 @@ $(function () {
     }
 
     // 压缩图片
-    function processImg(img, orientation) {
+    function processImg(result, orientation) {
+        var img = new Image();
+        img.src = result;
+        // 压缩比率（图片最大支持到500K）
+        var ratio = 500 * 1024 / result.length;
+        // 宽高限制在600px
+        var maxWidth = 600;
+        var maxHeight = 600;
+
         var width = img.width;
         var height = img.height;
-        var maxWidth = 200;
-        var maxHeight = 200;
 
-        // calculate the width and height, constraining the proportions
+        // 先压缩图片尺寸
+        var sizeRatio = 1;
         if (width > height) {
             if (width > maxWidth) {
-                height = Math.round(height * maxWidth / width);
+                sizeRatio = maxWidth / width;
+                height = Math.round(height * sizeRatio);
                 width = maxWidth;
             }
         } else {
             if (height > maxHeight) {
+                sizeRatio = maxHeight / height;
                 width = Math.round(width * maxHeight / height);
                 height = maxHeight;
             }
         }
+
+        ratio = Math.min(ratio / sizeRatio, 1);
 
         var canvas = document.createElement('canvas');
         canvas.width = width;
@@ -106,11 +117,11 @@ $(function () {
         //利用canvas进行绘图
         var ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
-        var base64;
 
+        var base64;
         if (navigator.userAgent.match(/Android/i)) {// 修复android
             var encoder = new JPEGEncoder();
-            base64 = encoder.encode(ctx.getImageData(0, 0, width, height), 50);
+            base64 = encoder.encode(ctx.getImageData(0, 0, width, height), ratio * 100);
         } else {
             if (orientation != "" && orientation != 1) {
                 switch (orientation) {
@@ -126,7 +137,7 @@ $(function () {
                         break;
                 }
             }
-            base64 = canvas.toDataURL("image/jpeg", 0.5);
+            base64 = canvas.toDataURL("image/jpeg", ratio);
         }
         return base64; //data url的形式
     }
@@ -432,26 +443,21 @@ $(function () {
             if (!file) return false;
 
             var reader = new FileReader();
-            var maxSize = 200 * 1024; // 200K
-
-            // 获取旋转信息
-            var orientation;
-            EXIF.getData(file, function () {
-                orientation = EXIF.getTag(this, 'Orientation');
-            });
 
             reader.onload = function () {
                 var result = this.result;   //result为data url的形式
 
-                if (result.length > maxSize) {
-                    var img = new Image();
-                    img.onload = function () {
-                        processImg(img, orientation);
-                    };
-                    img.src = result;
+                // 大于5M，直接拒绝
+                if (result.length > 5 * 1024 * 1024) {
+                    alert('您上传的图片过大，请上传不超过5M的图片！');
+                    return false;
                 }
 
-                preview.html('<img style="display: block;margin: 0px auto;" src="' + result + '">');
+                // 获取旋转信息
+                EXIF.getData(file, function () {
+                    result = processImg(result, EXIF.getTag(this, 'Orientation'));
+                    preview.html('<img style="display: block;margin: 0px auto;" src="' + result + '">');
+                });
             };
 
             reader.readAsDataURL(file);
@@ -527,6 +533,7 @@ $(function () {
             var videoUrl = video.val();
             var posterUrl;
             var isMp4;
+
             // 优酷
             if (videoUrl.indexOf('youku.com') > -1) {
                 if (/id_([\w=]+)\.html/.test(videoUrl)) {
@@ -536,7 +543,13 @@ $(function () {
                     return false;
                 }
             } else if (videoUrl.indexOf('tudou.com') > -1) {   // 土豆网
-                if (/\/([^\/]+)\/([^\.\/]+)\.html/.test(videoUrl)) {
+                if (/view\/(\w+)/.test(videoUrl)){
+                    videoUrl = 'http://www.tudou.com/programs/view/html5embed.action?type=0&code=' + RegExp.$1 + '&lcode=';
+                } else if(/v\/([\w=]+==)/.test(videoUrl)){
+                    isMp4 = true;
+                    videoUrl = BASE_URL + '/tudou-video-url?vid=' + RegExp.$1;
+                    posterUrl = BASE_URL + '/tudou-video-poster?vid=' + RegExp.$1;;
+                } else if(/\/([^\/]+)\/([^\.\/]+)\.html/.test(videoUrl)) {
                     videoUrl = 'http://www.tudou.com/programs/view/html5embed.action?type=0&code=' + RegExp.$2 + '&lcode=' + RegExp.$1;
                 } else {
                     alert('你输入的土豆地址无法解析！');
@@ -557,7 +570,7 @@ $(function () {
 
             var html;
             if (isMp4) {
-                html = '<video src="' + videoUrl + '" preload="true" controls webkit-playsinline playsinline style="max-width: 100%;" preload="true" webkit-playsinline poster="' + posterUrl + '"></video>';
+                html = '<video src="' + videoUrl + '" preload="true" controls webkit-playsinline playsinline style="min-height: 240px;max-width: 100%;" preload="true" webkit-playsinline poster="' + posterUrl + '"></video>';
             } else {
                 html = '<iframe width="100%" src="' + videoUrl + '" frameborder="0" style="max-width: 100%;"></iframe>';
             }

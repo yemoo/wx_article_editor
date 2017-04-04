@@ -34,7 +34,26 @@ if (ONLINE) {
     app.get('/editor.min.css', (req, res) => res.redirect('editor.css'));
 }
 
+// 土豆地址跳转
+app.get('/tudou-video-url', function (req, res) {
+    var videoUrl = 'https://ups.youku.com/ups/get.json?vid=' + req.query.vid + '&ccode=0505&client_ip=0.0.0.0&client_ts=1491234773&utid=ACXYEMfZ%20UACAXT3bTq%20Rp%2Fq';
+    fetch(videoUrl).then(res => res.json())
+        .then(json => res.redirect(json.data.stream[0].segs[0].cdn_url))
+        .catch(err => res.send(err.toString()));
+});
+app.get('/tudou-video-poster', function (req, res) {
+    var videoUrl = 'https://ups.youku.com/ups/get.json?vid=' + req.query.vid + '&ccode=0505&client_ip=0.0.0.0&client_ts=1491234773&utid=ACXYEMfZ%20UACAXT3bTq%20Rp%2Fq';
+    fetch(videoUrl).then(res => res.json())
+        .then(json => res.redirect(json.data.video.logo))
+        .catch(err => res.send(err.toString()));
+});
+
 // 今日头条视频
+const TOUTIAO_OPTS = {
+    headers: {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1'
+    }
+};
 app.get('/toutiao-video-url', function (req, resp) {
     var originUrl = req.query.url;
 
@@ -42,33 +61,32 @@ app.get('/toutiao-video-url', function (req, resp) {
     delete headers.referer;
     delete headers.host;
 
-    fetch(originUrl).then(res => res.text())
+    fetch(originUrl, TOUTIAO_OPTS).then(res => res.text())
         .then(text => {
-            if (/videoid:'(\w+)'/.test(text)) {
-                return 'http://i.snssdk.com' + crc32('/video/urls/v/1/toutiao/mp4/' + RegExp.$1);
+            if (/item_id = "(\d+)"/.test(text)) {
+                return fetch('https://m.365yg.com/i' + RegExp.$1 + "/info/");
             }
             throw new Error('无法解析');
         })
-        .then(url => fetch(url))
+        .then(res => res.json())
+        .then(json => {
+            var content = json.data.content;
+            var videoId = /tt-videoid='([^']+)'/.test(content) && RegExp.$1;
+            return fetch('http://i.snssdk.com' + crc32('/video/urls/v/1/toutiao/mp4/' + videoId));
+        })
         .then(res => res.json())
         .then(json => new Buffer(json.data.video_list.video_1.main_url, 'base64').toString())
         .then(videoUrl => request({
             url: videoUrl,
-            // 使用浏览器自身发起的 range header，否则在手机上视频无法加载
-            headers: headers
+            headers: headers    // 使用浏览器自身发起的 range header，否则在手机上视频无法加载
         }).pipe(resp))
         .catch(err => resp.send(err.toString()));
 });
 // 今日头条视频封面
 app.get('/toutiao-video-poster', function (request, response) {
     var originUrl = request.query.url;
-    var opts = {
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1'
-        }
-    };
 
-    fetch(originUrl, opts).then(res => res.text())
+    fetch(originUrl, TOUTIAO_OPTS).then(res => res.text())
         .then(text => {
             if (/share_url:'http:\/\/www\.toutiao\.com\/item\/(\d+)\/'/.test(text) || /item_id = "(\d+)"/.test(text)) {
                 return fetch('https://m.365yg.com/i' + RegExp.$1 + "/info/");
@@ -77,8 +95,8 @@ app.get('/toutiao-video-poster', function (request, response) {
         })
         .then(res => res.json())
         .then(json => {
-            var posterURL = json.data.content;
-            posterURL = /tt-poster='([^']+)'/.test(posterURL) ? RegExp.$1 : '';
+            var content = json.data.content;
+            var posterURL = /tt-poster='([^']+)'/.test(content) && RegExp.$1;
             return fetch(posterURL);
         })
         .then(res => res.body.pipe(response))
