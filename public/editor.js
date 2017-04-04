@@ -556,7 +556,7 @@ $(function () {
                     return false;
                 }
             } else if (videoUrl.indexOf('v.qq.com') > -1) {
-                if (/\/(\w{11})\.html$/.test(videoUrl)) {
+                if (/\/(\w{11})\.html$/.test(videoUrl) || /vid=(\w{11})/.test(videoUrl)) {
                     videoUrl = 'http://v.qq.com/iframe/player.html?vid=' + RegExp.$1;
                 } else {
                     alert('你输入的腾讯视频地址无法解析！');

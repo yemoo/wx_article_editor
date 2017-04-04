@@ -22,7 +22,7 @@ function crc32(pathname) {
 }
 
 // demo page
-app.get('/', (req, res) => res.redirect('demo.html'));
+app.get('/', (req, res) => res.redirect(ONLINE ? 'demo_online.html' : 'demo.html'));
 
 if (ONLINE) {
     app.get('/demo.html', (req, res) => res.redirect('demo_online.html'));
