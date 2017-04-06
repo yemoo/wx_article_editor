@@ -1,10 +1,10 @@
 .page-module{
-    border: 1px dashed #F1983F;
+    border: 1px dashed #F4A13F;
     box-sizing: border-box;
 }
 /* 模块删除按钮 */
 .page-module  .btn-delete-module{
-    background-color: #F1983F;
+    background-color: #F4A13F;
     color: #fff;
     font-size: 14px;
     padding: 3px 10px;
@@ -121,7 +121,7 @@
     cursor: pointer;
 }
 #text-panel .header .active{
-    border-color: #F1983F;
+    border-color: #F4A13F;
     background-color: #F6E8A9;
 }
 #text-panel .header .btn-clear{
@@ -163,7 +163,7 @@
     border-right: 1px solid #ddd;
 }
 #text-panel .footer .btn-submit{
-    color: #F1983F;
+    color: #F4A13F;
 }
 
 
@@ -319,7 +319,8 @@
     right: 0;
     padding: 5px 15px;
     font-size: 14px;
-    background-color: #ccc;
+    background-color: #F4A13F;
+    color: #fff;
     z-index: 1000;
 }
 .btn-editpage{
