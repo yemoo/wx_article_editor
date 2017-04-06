@@ -311,7 +311,7 @@
 }
 
 /* 编辑预览按钮 */
-.btn-editpage, .btn-previewpage{
+.btn-editpage, .btn-previewpage, .btn-newline{
     position: fixed;
     border:none;
     bottom: 0;
@@ -320,8 +320,18 @@
     padding: 5px 15px;
     font-size: 14px;
     background-color: #ccc;
+    z-index: 1000;
 }
 .btn-editpage{
     left: 0;
     right: auto;
+}
+
+.btn-newline{
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.n_body, .n_content{
+    overflow: visible;
 }

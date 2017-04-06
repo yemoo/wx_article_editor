@@ -583,15 +583,21 @@ $(function () {
         });
     }());
 
+    var isEdit = false;
 
     // 编辑页面
     function startEdit() {
+        if(isEdit) return;
+        isEdit = true;
         // 区块处理：通过 page-module 标识，增加删除按钮
         contentArea.find('p').wrap('<div class="page-module"></div>').before('<span class="btn-delete-module">删除</span>');
     }
 
     // 取消编辑
     function cancelEdit() {
+        if(!isEdit) return false;
+        isEdit = false;
+
         textEditor.close();
         SECTION_EDITOR.close();
 
@@ -602,7 +608,14 @@ $(function () {
             $(this).remove();
         });
     }
+    // 创建新行
+    function newLine(){
+        startEdit();
+        $('<div class="page-module"><span class="btn-delete-module">删除</span><p style="font-size:14px">点击编辑新行</p></div>').insertAfter('.page-module:last');
+        $(window).scrollTop($('.page-module:last').click().position().top);
+    }
 
     $('<button class="btn-editpage">编辑</button>').on('click', startEdit).appendTo(document.body);
     $('<button class="btn-previewpage">预览</button>').on('click', cancelEdit).appendTo(document.body);
+    $('<button class="btn-newline">新建一行</button>').on('click', newLine).appendTo(document.body);
 });
