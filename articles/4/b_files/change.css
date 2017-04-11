@@ -1,0 +1,936 @@
+﻿.jc-recommend {
+    margin: 0 auto 10px;
+    width: 95%;
+}
+/*精彩推荐 title   start*/
+.jc-tit {
+    height: 30px;
+    line-height: 30px;
+    position: relative;
+    text-align: center;
+    font-size: 16px;
+}
+
+.jc-tit em {
+    background: #0fcb0d none repeat scroll 0 0;
+    content: "";
+    display: block;
+    height: 1px;
+    left: 0;
+    position: absolute;
+    top: 15px;
+    width: 100%;
+    z-index: 0;
+}
+/*
+em {
+    float: right;
+    z-index: 999;
+}
+*/
+.jc-tit span {
+    background: #fff none repeat scroll 0 0;
+    color: #06ad04;
+    display: inline-block;
+    font-size: 15px;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 10px;
+    position: relative;
+}
+/*精彩推荐 title   end*/
+
+/*精彩推荐 content   start*/
+.clear::after {
+    clear: both;
+    content: ".";
+    display: block;
+    height: 0;
+    visibility: hidden;
+}
+.jc-recommend dl {
+    border-bottom: 1px solid #efefef;
+    height: 70px;
+    margin-top: 10px;
+    padding-bottom: 10px;
+    position: relative;
+}
+.clear {
+    clear: both;
+}
+.jc-recommend dt {
+    height: 70px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 70px;
+}
+.jc-recommend dt img {
+    height: 70px;
+    width: 110px;
+}
+.jc-recommend dd {
+    height: 70px;
+    margin-left: 120px;
+    overflow: hidden;
+    position: relative;
+    text-align: left;
+}
+.jc-recommend dd h3.bth3 {
+    font-size: 13px;
+    height: 40px;
+}
+.jc-recommend dd h3.bth3 a {
+    color: #333;
+    display: block;
+    font-size: 14px;
+    height: 40px;
+    line-height: 18px;
+    overflow: hidden;
+}
+
+.jc-recommend dd p {
+    font-size: 12px;
+    height: 25px;
+    line-height: 25px;
+    margin-top: 5px;
+}
+.jc-recommend dd p span {
+    color: #999;
+    float: right;
+}
+a {
+    word-break: break-all;
+}
+/*精彩推荐 content   end*/
+
+/*对话框的广告 s*/
+.dialog-user .user-con.active {
+    opacity: 1;
+    transition: opacity 0.5s linear;
+}
+em, i {
+    font-style: normal;
+}
+.dialog-user .user-con {
+    opacity: 0.4;
+    float: right;
+    padding: 2px 10px 2px 0px;
+    background: url(image/dialog-green.png) right 8px / 10px no-repeat;
+    transition: opacity 0.5s linear;
+}
+#dialog-ad {
+    display: none;
+    max-height: 270px;
+    overflow: hidden;
+}
+.dialog-npc {
+    color: #111;
+    font-size: 10px;
+    min-height: 28px;
+    padding: 2px 0 2px 10px;
+}
+.dialog-user {
+    padding: 2px 10px 2px 0;
+    min-height: 28px;
+    color: #111;
+    font-size: 10px;
+}
+.dialog-user .user-head {
+    float: right;
+    height: 24px;
+    width: 24px;
+    border-radius: 100%;
+    margin: 2px;
+}
+.dialog-user .user-con.active {
+    opacity: 1;
+    transition: opacity 0.5s linear;
+}
+.dialog-user .user-con p {
+    min-height: 17px;
+    display: block;
+    max-width: 200px;
+    max-height: 68px;
+    line-height: 17px;
+    border-radius: 3px;
+    overflow: hidden;
+    background-color: #a2e65b;
+    padding: 6px 10px;
+    text-align: left;
+    word-break: break-all;
+    font-size: 12px;
+}
+.hidden.nofixfot-active {
+    bottom: 0;
+    left: 0;
+    margin: 0 auto;
+    max-width: 640px;
+    position: fixed !important;
+    right: 0;
+}
+.dialog-con {
+    background: rgba( 153,153,153,0.5);
+    border-radius: 9px 9px 0 0;
+    height: 0;
+    max-height: 220px;
+    opacity: 1;
+    overflow: hidden;
+    position: relative;
+    transform: scale(1, 1);
+}
+.tran-top {
+    transform: translateY(0px);
+}
+.dialog-npc .npc-head {
+    border-radius: 100%;
+    float: left;
+    height: 24px;
+    margin: 2px;
+    width: 24px;
+}
+.dialog-npc .npc-con.active {
+    opacity: 1;
+    transition: opacity 0.5s linear 0s;
+}
+.dialog-npc .npc-con {
+    background: rgba(0, 0, 0, 0) url(image/dialog-white.png) no-repeat scroll left 8px / 10px auto;
+    margin-left: 26px;
+    opacity: 0.4;
+    padding: 2px 0 2px 10px;
+    transition: opacity 0.5s linear 0s;
+}
+.dialog-npc .npc-con p {
+    background-color: #fff;
+    border-radius: 3px;
+    display: block;
+    font-size: 12px;
+    line-height: 17px;
+    max-height: 68px;
+    max-width: 200px;
+    min-height: 17px;
+    overflow: hidden;
+    padding: 6px 10px;
+    text-align: left;
+    word-break: break-all;
+}
+.dialog-con #dialog-close {
+    background: rgba(0, 0, 0, 0) url(image/close_dialog.png) no-repeat scroll center center / 100% auto;
+    height: 20px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 20px;
+    z-index: 10;
+}
+.sendbox {
+    background-color: #f6f6f6;
+    height: 28px;
+    padding: 6px 0;
+    width: 100%;
+}
+
+.btn-send {
+    background-color: #06bb04;
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+    display: block;
+    float: right;
+    font-size: 14px;
+    height: 28px;
+    line-height: 28px;
+    margin-right: 10px;
+    vertical-align: middle;
+    text-align:center;
+    width: 55px;
+}
+
+.sendbox div {
+    display: block;
+    height: 28px;
+    margin-left: 10px;
+    margin-right: 95px;
+}
+
+input#sendtit {
+    border: 1px solid #c3c3c3;
+    border-radius: 4px;
+    color: #333;
+    font-size: 12px;
+    height: 26px;
+    line-height: 26px;
+    padding-left: 15px;
+    width: 100%;
+}
+/*对话框的广告 e*/
+
+/*水平仪  s*/
+#levelAd {
+    width: 100%;
+    height: 70px;
+    display: none;
+}
+.hidden.nofixfot-active {
+    position: fixed!important;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 640px;
+    margin: 0 auto;
+}
+.ad-tag {
+    display: inline-block;
+    position: absolute;
+    bottom: 3px;
+    right: 5px;
+    padding: 2px 5px;
+    line-height: 1em;
+    font-size: 0.6em;
+    color: #fff;
+    background-color: rgba(0,0,0,0.2);
+    text-align: center;
+    border-radius: 4px;
+    z-index: 12;
+}
+#levelAd .level-ad {
+    text-align: center;
+    position: relative;
+    height: 38px;
+    width: 100%;
+    font-weight: bold;
+    font-style: italic;
+    font-size: 28px;
+    margin-top: 34px;
+    background: url(image/wave-back.png) center -38px no-repeat;
+    background-size: 100% 76px;
+}
+#levelAd .level-ad p {
+    font-size: 50px;
+    display: block;
+    position: absolute;
+    top: -28px;
+    width: 100%;
+    height: 36px;
+    color: rgba(3,128,241,0.8);
+    text-shadow: 2px 3px 0px #d8f2fe;
+    font-weight: 900;
+}
+.water-wave {
+    width: 140%;
+    position: absolute;
+    height: 36px;
+    overflow: hidden;
+    left: -20%;
+}
+#water-wave {
+    height: 36px;
+}
+#water-wave {
+    height: 36px;
+    background: url(image/wave.png) center 6px repeat-x;
+    background-size: 60px 100%;
+    animation: wave 2s linear infinite;
+    -webkit-animation: wave 2s linear infinite;
+    opacity: 0.8;
+}
+@-webkit-keyframes wave {from{background-position-x: 0px;}to{background-position-x: 120px;}}
+/*水平仪  e*/
+
+/*语音广告  s*/
+.hidden.nofixfot-active {
+    position: fixed!important;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 640px;
+    margin: 0 auto;
+}
+.audio-ad {
+    height: 70px;
+    position: relative;
+    color: #fff;
+    display: none;
+}
+.audio-ad .imguser {
+    background: url(image/bg-fot-card-l.png) no-repeat;
+    background-size: 70px;
+    -webkit-background: 70px;
+}
+.imguser {
+    width: 70px;
+    height: 70px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 0;
+    background: url(image/bg-fot-twma-l.png) no-repeat;
+    background-size: 70px;
+    -webkit-background: 70px;
+}
+.imguser a {
+    width: 54px;
+    height: 54px;
+    display: block;
+    border-radius: 2px;
+    box-shadow: 0 0 0;
+    margin: 4px 0 0 6px;
+}
+#audio_img {
+    border-radius: 100%;
+}
+.imguser span {
+    width: 54px;
+    height: 54px;
+    display: block;
+    border-radius: 2px;
+    box-shadow: 0 0 0;
+}
+.imguser span {
+    width: 57px;
+    height: 57px;
+    display: block;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.35);
+}
+.imguser i.icon-V-logo {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    bottom: 9px;
+    right: 2px;
+}
+i.icon-V-logo {
+    position: absolute;
+    display: none;
+    width: 15px;
+    height: 15px;
+    bottom: 12px;
+    right: 4px;
+}
+.audiobox {
+    height: 54px;
+    padding-top: 16px;
+    margin-left: 70px;
+    position: relative;
+}
+.audioboxinner {
+    text-align: left;
+    color: #fff;
+    background: rgba(0,0,0,.6);
+    height: 30px;
+    padding: 13px 0 12px 3px;
+    position: relative;
+}
+.audiotime {
+    float: left;
+    width: 40px;
+    margin-left: 190px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+}
+.audiobar {
+    width: 180px;
+    height: 30px;
+    background-color: #a2e65b;
+    border-radius: 8px;
+    padding-left: 10px;
+}
+i.bar-play {
+    background: url(image/icon-ad-audio.png) left center no-repeat;
+    background-size: 100% auto;
+    display: block;
+    height: inherit;
+    width: 14px;
+    opacity: 0.9;
+    transform: rotate(180deg);
+    -webkit-transform: rotate(180deg);
+}
+audio:not([controls]) {
+    display: none;
+}
+user agent stylesheet
+audio {
+    width: 300px;
+    height: 32px;
+}
+i.bar-play.active {
+    animation: audio-active 1s infinite linear;
+}
+@-webkit-keyframes audio-active{0%{background:url(image/icon-ad-audio-1.png) left center no-repeat;background-size: 14px auto;}50%{background:url(image/icon-ad-audio-2.png) left center no-repeat;background-size: 14px auto;}100%{background:url(image/icon-ad-audio.png) left center no-repeat;background-size: 14px auto;}}
+/*语音广告  e*/
+
+/*文字滚动  s*/
+.hidden.nofixfot-active {
+    position: fixed!important;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 640px;
+    margin: 0 auto;
+}
+marquee {
+    background: url(image/lamp-run-back.png) center center repeat-x;
+}
+:host {
+    display: inline-block;
+    width: -webkit-fill-available;
+    overflow: hidden;
+    text-align: initial;
+    white-space: nowrap;
+}
+user agent stylesheet
+marquee {
+    display: inline-block;
+}
+Inherited from div#lamp-ad.hidden.nofixfot-active
+/*文字滚动  e*/
+
+/*名片式  s*/
+.cardinfo h3 {
+    font-size: 13px;
+    margin-bottom: 3px;
+    height: 15px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.cardinfo h3 {
+    font-size: 16px;
+    font-weight: 400;
+}
+.hidden.nofixfot-active {
+    position: fixed!important;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 640px;
+    margin: 0 auto;
+}
+.card-ad {
+    height: 70px;
+    position: relative;
+    color: #fff;
+}
+.card-ad .imguser {
+    background: url(image/bg-fot-card-l.png) no-repeat;
+    background-size: 70px;
+    -webkit-background: 70px;
+}
+.card-ad .imguser a {
+    margin: 5px 0 0 7px;
+}
+.card-ad .imguser a, .card-ad .imguser span {
+    border-radius: 50%;
+}
+.card-ad .imguser span, .coupon-ad .coupon-imguser a {
+    border-radius: 50%;
+}
+.card-ad .imguser a, .card-ad .imguser span {
+    border-radius: 50%;
+}
+.imguser span {
+    width: 54px;
+    height: 54px;
+    display: block;
+    border-radius: 2px;
+    box-shadow: 0 0 0;
+}
+.card-ad .imguser i.icon-V-logo {
+    bottom: 10px;
+    right: 10px;
+}
+.imguser i.icon-V-logo {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    bottom: 9px;
+    right: 2px;
+}
+i.icon-V-logo {
+    position: absolute;
+    display: none;
+    width: 15px;
+    height: 15px;
+    bottom: 12px;
+    right: 4px;
+}
+.cardbox {
+    height: 54px;
+    padding-top: 16px;
+    margin-left: 70px;
+    position: relative;
+}
+
+.cardboxinner {
+    text-align: left;
+    color: #fff;
+    background: rgba(0,0,0,.6);
+    height: 50px;
+    padding: 4px 0 0 3px;
+    position: relative;
+}
+.cardinfo {
+    margin: 0 150px 0 0;
+    color: #fff;
+    padding-top: 0;
+    line-height: 15px;
+    position: relative;
+    overflow: hidden;
+}
+.cardinfo {
+    margin: 0 60px 0 65px;
+    text-align: left;
+    color: #222;
+    line-height: 18px;
+    padding-top: 6px;
+}
+.cardinfo p.p-tel {
+    font-size: 11px;
+    -webkit-transform: scale(.95);
+    margin-left: -2.5%;
+}
+.cardinfo p.p-address {
+    font-size: 10px;
+    -webkit-transform: scale(.85);
+    margin-left: -8.25%;
+    height: 15px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.zxdiv {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 150px;
+    height: 24px;
+    padding: 15px 8px;
+    border-left: none;
+}
+.zxdiv a {
+    display: block;
+    width: 65px;
+    height: 24px;
+    background: #06bb04;
+    border-radius: 3px;
+    color: #fff;
+    line-height: 24px;
+    font-size: 12px;
+    text-align: center;
+    float: left;
+    margin-left: 10px;
+}
+.font_color {
+    animation: font-color 2s linear 0s infinite none;
+    -webkit-animation: font-color 2s linear 0s infinite none;
+}
+.cardinfo {
+	margin: 0 150px 0 0;
+	color: #fff;
+	padding-top: 0;
+	line-height: 15px;
+	position: relative;
+	overflow: hidden
+}
+.cardinfo h3 {
+	font-size: 13px;
+	margin-bottom: 3px;
+	height: 15px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis
+}
+@keyframes font-color {
+	0% {
+		color: #fff
+	}
+
+	50% {
+		color: #ffc000
+	}
+}
+
+@-webkit-keyframes font-color {
+	0% {
+		color: #fff
+	}
+
+	50% {
+		color: #ffc000
+	}
+}
+.font_color {
+	animation: font-color 2s linear 0s infinite none;
+	-webkit-animation: font-color 2s linear 0s infinite none
+}
+/*名片式  e*/
+
+/*小车滚动  s*/
+.drive-ad{background: url(image/drive-back.png) center repeat-x;width: 100%;height: 70px;position: fixed;margin:0 auto;bottom:0;left:0;right:0;display: none;max-width: 640px;}
+.drive-ad .drive-car{height:26px;-webkit-transform:translateX(-500px);}
+.drive-car .car{width:70px;height:26px;background: url(image/icon-car.png) top center no-repeat;-webkit-background-size: 100% auto;background-size: 100% auto;margin-top:18px;float:right;margin-left: 4px;}
+.drive-car .car-wheel{-webkit-background-size: 100% auto;background-size: 100% auto;display: block; height:14px;width:14px;
+margin-top: 18px;-webkit-animation: tyre-rotate 1s infinite linear}
+.car-wheel.car-wheel1{float: left;margin-left: 20px;}
+.car-wheel.car-wheel2{float: right;margin-right: 3px;}
+@-webkit-keyframes tyre-rotate {from{-webkit-transform:rotate(-360deg);} to{-webkit-transform:rotate(0deg);}}
+@-webkit-keyframes con-opacity {0%{opacity:0.4;} 50%{opacity:1;} 100%{opacity: 0.4}}
+.drive-car.active{-webkit-transform:translateX(500px) !important;}
+.car-ad-con{color:#fff;height:30px;line-height: 30px;overflow: hidden;margin-top:10px;/*-webkit-animation: con-opacity 5s infinite linear;*/text-align: right;font-size: 16px;}
+/*小车滚动  e*/
+
+
+/*优惠券  s*/
+.coupon-ad {
+    width: 100%;
+    height: 70px;
+    position: relative;
+    padding: 0;
+    background: 0 0;
+}
+
+.coupon-ad .coupon-imguser {
+    background: url(image/bg-fot-quan-l.png) no-repeat;
+    background-size: 70px;
+    -webkit-background: 70px;
+}
+
+.coupon-imguser {
+    width: 70px;
+    height: 70px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 0;
+    background: url(image/bg-fot-twma-l.png) no-repeat;
+    background-size: 70px;
+    -webkit-background: 70px;
+}
+
+.coupon-imguser a {
+    width: 54px;
+    height: 54px;
+    display: block;
+    border-radius: 2px;
+    box-shadow: 0 0 0;
+    margin: 4px 0 0 6px;
+}
+
+.coupon-ad .coupon-imguser i.icon-V-logo {
+    bottom: 12px;
+    right: 4px;
+}
+
+.quanbox {
+    height: 54px;
+    padding-top: 16px;
+    margin-left: 70px;
+    position: relative;
+}
+
+.quanboxinner {
+    text-align: left;
+    color: #fff;
+    height: 54px;
+    position: relative;
+}
+
+.quaninfo {
+    margin: 0 55px 0 0;
+    height: 50px;
+    color: #fff;
+    padding-top: 0;
+    line-height: 15px;
+    position: relative;
+    overflow: hidden;
+    background: rgba(0,0,0,.6);
+    z-index: 0;
+    padding: 4px 0 0 5px;
+    line-height: 18px;
+}
+
+.quaninfo h3 {
+    font-size: 13px;
+    height: 18px;
+    line-height: 18px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-weight: 400;
+}
+
+.quaninfo h3 span {
+    font-size: 18px;
+}
+
+.quaninfo p {
+    line-height: 16px;
+    font-size: 12px;
+    max-height: 32px;
+    overflow: hidden;
+}
+
+.get-quan-btn {
+    width: 60px;
+    height: 54px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: url(image/btn-get-quan.png) no-repeat;
+    background-size: cover;
+    -webkit-background-size: cover;
+    z-index: 1;
+}
+
+.get-quan-btn a {
+    display: block;
+    width: 60px;
+    height: 54px;
+    text-indent: -9999px;
+}
+
+.bg-quan-di {
+    position: absolute;
+    bottom: 0;
+    right: 45px;
+    width: 39px;
+    height: 24px;
+    z-index: 3;
+}
+
+.coupon-imguser span {
+    width: 61px;
+    height: 61px;
+    display: block;
+    border-radius: 61px;
+    box-shadow: 0 0 0;
+}
+
+#quan-red {
+    width: 78%;
+    background: url(image/bg-quan-radiation.png) center no-repeat;
+    background-size: 100% auto;
+    -webkit-background-size: 100% auto;
+    border-radius: 5px;
+    padding: 18px;
+    display: none;
+    text-align: center;
+}
+
+.close-quan {
+    width: 30px;
+    height: 30px;
+    display: block;
+    background: url(image/btn-pop-close.png) no-repeat;
+    background-size: 30px;
+    -wekit-background-size: 30px;
+    position: absolute;
+    top: -10px;
+    right: -10px;
+}
+
+.bg-quan-sd {
+    width: 88%;
+    height: 200px;
+    position: absolute;
+    left: 6%;
+    bottom: 145px;
+    background: url(image/bg-quan-sd.png) no-repeat;
+    background-size: contain;
+    -webkit-background-size: contain;
+}
+
+#quan-red h3 {
+    padding-left: 20px;
+    font-size: 25px;
+    color: #ffde26;
+    font-weight: 400;
+}
+
+#quan-red p.p-money {
+    font-size: 18px;
+    color: #ffde26;
+    padding: 5px 0;
+}
+
+#quan-red p.p-tip {
+    padding: 8px 0 0;
+    font-size: 13px;
+    line-height: 20px;
+    color: #fff;
+}
+
+#quan-red li {
+    height: 40px;
+    margin-top: 18px;
+}
+
+#quan-red input {
+    background: #fff;
+    height: 30px;
+    padding: 5px 1%;
+    line-height: 30px;
+    display: block;
+    width: 98%;
+    border-radius: 3px;
+    font-size: 15px;
+}
+
+#quan-red button {
+    height: 40px;
+    background: #ffde26;
+    width: 100%;
+    font-size: 16px;
+    color: #06bb04;
+    border-radius: 20px;
+    border: none;
+}
+/*优惠券  e*/
+
+/*图文广告  s*/
+.tw-ad {
+    height: 70px;
+    position: relative;
+    color: #fff;
+}
+
+.spdbox {
+    height: 54px;
+    padding-top: 16px;
+    margin-left: 70px;
+    position: relative;
+}
+
+.spdbox {
+    margin: 0 0 0 70px;
+    text-align: left;
+    color: #222;
+    line-height: 18px;
+}
+
+.spboxinner {
+    text-align: left;
+    line-height: 18px;
+    color: #fff;
+    background: rgba(0,0,0,.6);
+    height: 70px;
+    padding: 4px 0 0 5px;
+}
+
+#ad-title {
+    padding-top: 10px;
+    font-size: 15px;
+}
+#ad-title {
+    height: 15px;
+    line-height: 15px;
+    overflow: hidden;
+    padding-left: 2px;
+}
+.spboxinner h3 {
+    font-size: 14px;
+    font-weight: 400;
+}
+/*图文广告  e*/

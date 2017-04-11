@@ -1,11 +1,35 @@
-var express = require('express');
-var app = express();
-var fetch = require('node-fetch');
-var request = require('request');
+const express = require('express');
+const app = express();
+var bodyParser = require('body-parser');
+const path = require('path');
+const fs = require('fs');
+const fetch = require('node-fetch');
+const request = require('request');
+const Iconv = require('iconv').Iconv;
 
+// ============ 配置部分 START ============
+// 文章根目录
+const ARTICLE_DIR = path.resolve('./articles');
+// 文章保存路径
+function saveDist(src){
+    return src.replace(/\.html$/, '.html');
+}
+// 插入到页面的代码
+var INJECT_CODE = `
+<!-- START EDITOR INJECT CODE -->
+<link rel="stylesheet" href="/fontello/css/fontello.css">
+<link rel="stylesheet" href="/editor.css">
+<script src="/exif.js"></script>
+<script src="/editor.js"></script>
+<!-- END EDITOR INJECT CODE -->`;
+// ============ 配置部分 END ============
+
+
+// 静态资源
 const STATIC_PATH = __dirname + "/public";
+// node服务端口
 const PORT = process.env.PORT || 3000;
-const ONLINE = PORT == 4000;
+// const ENV = process.evn.NODE_ENV || 'development';
 
 function crc32(pathname) {
     var n = function () {
@@ -21,18 +45,66 @@ function crc32(pathname) {
     return i + "&s=" + o;
 }
 
-// demo page
-app.get('/', (req, res) => res.redirect(ONLINE ? 'demo_online.html' : 'demo.html'));
+app.use(bodyParser.json()); // for parsing application/json
+app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
-if (ONLINE) {
-    app.get('/demo.html', (req, res) => res.redirect('demo_online.html'));
-    app.get('/editor.js', (req, res) => res.redirect('editor.min.js'));
-    app.get('/editor.css', (req, res) => res.redirect('editor.min.css'));
-} else {
-    app.get('/demo_online.html', (req, res) => res.redirect('demo.html'));
-    app.get('/editor.min.js', (req, res) => res.redirect('editor.js'));
-    app.get('/editor.min.css', (req, res) => res.redirect('editor.css'));
-}
+// 文章内容捕获
+app.get(/^\/articles\/(.+?\.html)$/, (req, res, next) => {
+    var file = req.params[0];
+    if (!file) {
+        res.status(404).end('Page not Found!');
+    }
+
+    var src = path.join(ARTICLE_DIR, file);
+    if (!fs.existsSync(src)) {
+        return next();
+    }
+
+    fs.readFile(src, (err, content) => {
+        if(err) {
+            return res.status(500).end(err.toString());
+        }
+
+        if(content.toString().indexOf('�') != -1){
+            content = new Iconv('GBK', 'UTF8').convert(content);
+        }
+
+        var isInject = false;
+        content = content.toString().replace(/<\/body>/i, function(o){
+            isInject = true;
+            return INJECT_CODE + o;
+        });
+        if(!isInject){
+            content += INJECT_CODE;
+        }
+
+        res.send(content);
+    });
+});
+
+// 保存数据
+app.post('/save', function (req, res) {
+    var content = req.body.data;
+    var page = req.body.page;
+    if(content && page){
+        content = content.replace(INJECT_CODE, '');
+
+        page = path.join(ARTICLE_DIR, page.replace(/^\/articles/, ''));
+        page = saveDist(page);
+
+        fs.writeFile(page, content, function(){
+            res.json({
+                code: 0,
+                msg: 'ok'
+            });
+        });
+    } else{
+        res.json({
+            code: -1,
+            msg: '参数缺失'
+        });
+    }
+});
 
 // 土豆地址跳转
 app.get('/tudou-video-url', function (req, res) {
@@ -103,11 +175,7 @@ app.get('/toutiao-video-poster', function (request, response) {
         .catch(err => response.send(''));
 });
 
-// 保存数据
-app.post('/save', function (req, res) {
-    res.send(req.body);
-});
-
+app.use('/articles', express.static(ARTICLE_DIR));
 app.use(express.static(STATIC_PATH));
 
 app.listen(PORT, function () {

@@ -543,13 +543,14 @@ $(function () {
                     return false;
                 }
             } else if (videoUrl.indexOf('tudou.com') > -1) {   // 土豆网
-                if (/view\/(\w+)/.test(videoUrl)){
+                if (/view\/(\w+)/.test(videoUrl)) {
                     videoUrl = 'http://www.tudou.com/programs/view/html5embed.action?type=0&code=' + RegExp.$1 + '&lcode=';
-                } else if(/v\/([\w=]+==)/.test(videoUrl)){
+                } else if (/v\/([\w=]+==)/.test(videoUrl)) {
                     isMp4 = true;
                     videoUrl = BASE_URL + '/tudou-video-url?vid=' + RegExp.$1;
-                    posterUrl = BASE_URL + '/tudou-video-poster?vid=' + RegExp.$1;;
-                } else if(/\/([^\/]+)\/([^\.\/]+)\.html/.test(videoUrl)) {
+                    posterUrl = BASE_URL + '/tudou-video-poster?vid=' + RegExp.$1;
+                    ;
+                } else if (/\/([^\/]+)\/([^\.\/]+)\.html/.test(videoUrl)) {
                     videoUrl = 'http://www.tudou.com/programs/view/html5embed.action?type=0&code=' + RegExp.$2 + '&lcode=' + RegExp.$1;
                 } else {
                     alert('你输入的土豆地址无法解析！');
@@ -585,17 +586,25 @@ $(function () {
 
     var isEdit = false;
 
+    function wrapItem(item) {
+        return $(item).wrap('<div class="page-module"></div>').before('<span class="btn-delete-module">删除</span>');
+    }
+
     // 编辑页面
     function startEdit() {
-        if(isEdit) return;
+        if (isEdit) return;
         isEdit = true;
+
         // 区块处理：通过 page-module 标识，增加删除按钮
-        contentArea.find('p').wrap('<div class="page-module"></div>').before('<span class="btn-delete-module">删除</span>');
+        contentArea.find(' > *').each(function () {
+            var children = $(this).find('p');
+            wrapItem(children.length ? children : this);
+        });
     }
 
     // 取消编辑
     function cancelEdit() {
-        if(!isEdit) return false;
+        if (!isEdit) return false;
         isEdit = false;
 
         textEditor.close();
@@ -608,14 +617,47 @@ $(function () {
             $(this).remove();
         });
     }
+
+    function toggleState(state) {
+        if (!state || ['view', 'edit'].indexOf(state) == -1) {
+            state = pageState == 'view' ? 'edit' : 'view';
+        }
+
+        if (state == 'edit') {
+            pageState = 'edit';
+            toggleEl.text('预览');
+            startEdit();
+        } else {
+            pageState = 'view';
+            toggleEl.text('编辑');
+            cancelEdit();
+        }
+    }
+
     // 创建新行
-    function newLine(){
+    function newLine() {
         startEdit();
-        $('<div class="page-module"><span class="btn-delete-module">删除</span><p style="font-size:14px">点击编辑新行</p></div>').insertAfter('.page-module:last');
+        wrapItem($('<p style="font-size:14px">点击编辑新行</p>').insertAfter('.page-module:last'));
         $(window).scrollTop($('.page-module:last').click().position().top);
     }
 
-    $('<button class="btn-editpage">编辑</button>').on('click', startEdit).appendTo(document.body);
-    $('<button class="btn-previewpage">预览</button>').on('click', cancelEdit).appendTo(document.body);
+    function savePage() {
+        toggleState('view');
+
+        $.post('/save', {
+            page: location.pathname,
+            data: document.documentElement.outerHTML
+        }, function (res) {
+            if (res.code == 0) {
+                window.close();
+            } else {
+                alert('保存失败，请重试！');
+            }
+        }, 'json');
+    }
+
+    var pageState = 'view';
+    var toggleEl = $('<button class="btn-toggle">编辑</button>').on('click', toggleState).appendTo(document.body);
+    $('<button class="btn-save">保存</button>').on('click', savePage).appendTo(document.body);
     $('<button class="btn-newline">新建一行</button>').on('click', newLine).appendTo(document.body);
 });

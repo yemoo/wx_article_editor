@@ -311,7 +311,7 @@
 }
 
 /* 编辑预览按钮 */
-.btn-editpage, .btn-previewpage, .btn-newline{
+.btn-toggle, .btn-save, .btn-newline{
     position: fixed;
     border:none;
     bottom: 0;
@@ -323,7 +323,7 @@
     color: #fff;
     z-index: 1000;
 }
-.btn-editpage{
+.btn-toggle{
     left: 0;
     right: auto;
 }
