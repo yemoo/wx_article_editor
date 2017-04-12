@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const fetch = require('node-fetch');
 const request = require('request');
-const Iconv = require('iconv').Iconv;
+const iconv = require('iconv-lite');
 
 // ============ 配置部分 START ============
 // 文章根目录
@@ -66,7 +66,8 @@ app.get(/^\/articles\/(.+?\.html)$/, (req, res, next) => {
         }
 
         if(content.toString().indexOf('�') != -1){
-            content = new Iconv('GBK', 'UTF8').convert(content);
+            content = iconv.decode(content, 'GBK');
+            content = iconv.encode(content, 'UTF8');
         }
 
         var isInject = false;

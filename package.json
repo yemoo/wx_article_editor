@@ -11,7 +11,7 @@
   "dependencies": {
     "body-parser": "^1.17.1",
     "express": "^4.15.2",
-    "iconv": "^2.2.3",
+    "iconv-lite": "^0.4.15",
     "node-fetch": "^1.6.3",
     "request": "^2.81.0"
   }
