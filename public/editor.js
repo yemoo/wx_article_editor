@@ -80,7 +80,7 @@ $(function () {
     }
 
     // 压缩图片
-    function processImg(result, orientation) {
+    function processImg(result, orientation, callback) {
         var img = new Image();
         img.src = result;
         // 压缩比率（图片最大支持到500K）
@@ -89,57 +89,60 @@ $(function () {
         var maxWidth = 600;
         var maxHeight = 600;
 
-        var width = img.width;
-        var height = img.height;
+        img.onload = function(){
+            var width = img.width;
+            var height = img.height;
 
-        // 先压缩图片尺寸
-        var sizeRatio = 1;
-        if (width > height) {
-            if (width > maxWidth) {
-                sizeRatio = maxWidth / width;
-                height = Math.round(height * sizeRatio);
-                width = maxWidth;
-            }
-        } else {
-            if (height > maxHeight) {
-                sizeRatio = maxHeight / height;
-                width = Math.round(width * maxHeight / height);
-                height = maxHeight;
-            }
-        }
-
-        ratio = Math.min(ratio / sizeRatio, 1);
-
-        var canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-
-        //利用canvas进行绘图
-        var ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
-
-        var base64;
-        if (navigator.userAgent.match(/Android/i)) {// 修复android
-            var encoder = new JPEGEncoder();
-            base64 = encoder.encode(ctx.getImageData(0, 0, width, height), ratio * 100);
-        } else {
-            if (orientation != "" && orientation != 1) {
-                switch (orientation) {
-                    case 6://需要顺时针（向左）90度旋转
-                        rotateImg(img, 'left', canvas);
-                        break;
-                    case 8://需要逆时针（向右）90度旋转
-                        rotateImg(img, 'right', canvas);
-                        break;
-                    case 3://需要180度旋转
-                        rotateImg(img, 'right', canvas);//转两次
-                        rotateImg(img, 'right', canvas);
-                        break;
+            // 先压缩图片尺寸
+            var sizeRatio = 1;
+            if (width > height) {
+                if (width > maxWidth) {
+                    sizeRatio = maxWidth / width;
+                    height = Math.round(height * sizeRatio);
+                    width = maxWidth;
+                }
+            } else {
+                if (height > maxHeight) {
+                    sizeRatio = maxHeight / height;
+                    width = Math.round(width * maxHeight / height);
+                    height = maxHeight;
                 }
             }
-            base64 = canvas.toDataURL("image/jpeg", ratio);
-        }
-        return base64; //data url的形式
+
+            ratio = Math.min(ratio / sizeRatio, 1);
+
+            var canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+
+            //利用canvas进行绘图
+            var ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            var base64;
+            if (navigator.userAgent.match(/Android/i)) {// 修复android
+                var encoder = new JPEGEncoder();
+                base64 = encoder.encode(ctx.getImageData(0, 0, width, height), ratio * 100);
+            } else {
+                if (orientation != "" && orientation != 1) {
+                    switch (orientation) {
+                        case 6://需要顺时针（向左）90度旋转
+                            rotateImg(img, 'left', canvas);
+                            break;
+                        case 8://需要逆时针（向右）90度旋转
+                            rotateImg(img, 'right', canvas);
+                            break;
+                        case 3://需要180度旋转
+                            rotateImg(img, 'right', canvas);//转两次
+                            rotateImg(img, 'right', canvas);
+                            break;
+                    }
+                }
+                base64 = canvas.toDataURL("image/jpeg", ratio);
+            }
+            //data url的形式
+            callback && callback(base64);
+        };
     }
 
     /* ==== end 公共函数 ==== */
@@ -449,14 +452,24 @@ $(function () {
 
                 // 大于5M，直接拒绝
                 if (result.length > 5 * 1024 * 1024) {
-                    alert('您上传的图片过大，请上传不超过5M的图片！');
+                    swal('上传提示', '您上传的图片过大，请上传不超过5M的图片！', 'error');
                     return false;
                 }
 
                 // 获取旋转信息
                 EXIF.getData(file, function () {
-                    result = processImg(result, EXIF.getTag(this, 'Orientation'));
-                    preview.html('<img style="display: block;margin: 0px auto;" src="' + result + '">');
+                    processImg(result, EXIF.getTag(this, 'Orientation'), function (result) {
+                        $.post('/upload', {
+                            refer: location.pathname,
+                            data: result
+                        },function(data){
+                            if(data.code == 0){
+                                preview.html('<img style="display: block;margin: 0px auto;" src="' + data.msg + '">');
+                            } else {
+                                swal('上传提示', '上传失败，请重试！', 'error');
+                            }
+                        });
+                    });
                 });
             };
 
@@ -649,15 +662,24 @@ $(function () {
             data: document.documentElement.outerHTML
         }, function (res) {
             if (res.code == 0) {
-                window.close();
+                swal('操作提示', '页面保存成功！', 'success');
             } else {
-                alert('保存失败，请重试！');
+                swal('操作提示', '保存失败，请重试！', 'error');
             }
         }, 'json');
     }
 
-    var pageState = 'view';
+
     var toggleEl = $('<button class="btn-toggle">编辑</button>').on('click', toggleState).appendTo(document.body);
     $('<button class="btn-save">保存</button>').on('click', savePage).appendTo(document.body);
     $('<button class="btn-newline">新建一行</button>').on('click', newLine).appendTo(document.body);
+
+    // 支持参数设置页面状态
+    var pageState = /[\?&]state=(\w+)/gi.test(location.search) ? RegExp.$1 : 'view';
+    toggleState(pageState);
+
+    // 删除 body 上定义的 height
+    if ($(document.body).css('height')) {
+        $(document.body).css('height', 'auto');
+    }
 });

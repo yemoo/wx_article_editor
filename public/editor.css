@@ -1,3 +1,6 @@
+body{
+    padding-bottom: 60px;
+}
 .page-module{
     border: 1px dashed #F4A13F;
     box-sizing: border-box;

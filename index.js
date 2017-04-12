@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-var bodyParser = require('body-parser');
+const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
 const fetch = require('node-fetch');
@@ -11,15 +11,17 @@ const iconv = require('iconv-lite');
 // 文章根目录
 const ARTICLE_DIR = path.resolve('./articles');
 // 文章保存路径
-function saveDist(src){
+function saveDist(src) {
     return src.replace(/\.html$/, '.html');
 }
 // 插入到页面的代码
 var INJECT_CODE = `
 <!-- START EDITOR INJECT CODE -->
 <link rel="stylesheet" href="/fontello/css/fontello.css">
+<link rel="stylesheet" href="/sweetalert.css">
 <link rel="stylesheet" href="/editor.css">
 <script src="/exif.js"></script>
+<script src="/sweetalert.min.js"></script>
 <script src="/editor.js"></script>
 <!-- END EDITOR INJECT CODE -->`;
 // ============ 配置部分 END ============
@@ -45,8 +47,8 @@ function crc32(pathname) {
     return i + "&s=" + o;
 }
 
-app.use(bodyParser.json()); // for parsing application/json
-app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+app.use(bodyParser.json({limit: '5mb'})); // for parsing application/json
+app.use(bodyParser.urlencoded({extended: true, limit: '5mb'})); // for parsing application/x-www-form-urlencoded
 
 // 文章内容捕获
 app.get(/^\/articles\/(.+?\.html)$/, (req, res, next) => {
@@ -61,21 +63,21 @@ app.get(/^\/articles\/(.+?\.html)$/, (req, res, next) => {
     }
 
     fs.readFile(src, (err, content) => {
-        if(err) {
+        if (err) {
             return res.status(500).end(err.toString());
         }
 
-        if(content.toString().indexOf('�') != -1){
+        if (content.toString().indexOf('�') != -1) {
             content = iconv.decode(content, 'GBK');
             content = iconv.encode(content, 'UTF8');
         }
 
         var isInject = false;
-        content = content.toString().replace(/<\/body>/i, function(o){
+        content = content.toString().replace(/<\/body>/i, function (o) {
             isInject = true;
             return INJECT_CODE + o;
         });
-        if(!isInject){
+        if (!isInject) {
             content += INJECT_CODE;
         }
 
@@ -83,23 +85,60 @@ app.get(/^\/articles\/(.+?\.html)$/, (req, res, next) => {
     });
 });
 
+// 图片上传
+app.post('/upload', function(req, res){
+    //接收前台POST过来的base64
+    var imgData = req.body.data || '';
+    var refer = req.body.refer || '';
+
+    if(!imgData || !refer){
+        return res.json({
+            code: -1,
+            msg: '参数错误'
+        });
+    }
+
+    var imgDir = path.dirname(refer).replace(/^\/articles/, '');
+    //过滤data:URL
+    var fileType = 'png';
+    var base64Data = imgData.replace(/^data:image\/(\w+);base64,/, function(o, ext){
+        fileType = ext;
+        return '';
+    });
+    var fileName = Date.now() + ('' + Math.random()).substr(1) + '.' + fileType;
+    var imgUrl = path.join(imgDir, fileName);
+    fs.writeFile(path.join(ARTICLE_DIR, imgUrl), new Buffer(base64Data, 'base64'), function(err) {
+        if(err){
+            res.json({
+                code: -1,
+                msg: '上传失败'
+            });
+        }else{
+            res.json({
+                code: 0,
+                msg: path.join('/articles', imgUrl)
+            });
+        }
+    });
+});
+
 // 保存数据
 app.post('/save', function (req, res) {
     var content = req.body.data;
     var page = req.body.page;
-    if(content && page){
+    if (content && page) {
         content = content.replace(INJECT_CODE, '');
 
         page = path.join(ARTICLE_DIR, page.replace(/^\/articles/, ''));
         page = saveDist(page);
 
-        fs.writeFile(page, content, function(){
+        fs.writeFile(page, content, function () {
             res.json({
                 code: 0,
                 msg: 'ok'
             });
         });
-    } else{
+    } else {
         res.json({
             code: -1,
             msg: '参数缺失'
