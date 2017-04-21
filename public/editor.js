@@ -1,5 +1,6 @@
 $(function () {
     /* ==== start 公共函数 ==== */
+    var baseUrl = location.href.replace(location.pathname, '');
     var dialogIndex = 1000;
     // 弹出层函数
     function createDialog(config) {
@@ -188,18 +189,19 @@ $(function () {
             // 点击菜单区域
             if (section.closest('.section-menus').length) return true;
 
-            if (section.is('.page-module')) section = section.find(' > p');
+            if (section.is('.page-module')) section = section.children(':last');
 
             this.close();
             this.activeSection = section;
             this.activeSectionWrapper.insertBefore(section);
             this.activeSectionWrapper.find('.content').append(section);
 
-            if (items) {
+            // if (typeof items != 'undefined') {
+                items = items || BASE_BTNS;
                 menus.find('li').addClass('disabled').filter(items.join(',')).removeClass('disabled');
-            } else {
-                menus.find('li').removeClass('disabled');
-            }
+            // } else {
+            //     menus.find('li').removeClass('disabled');
+            // }
         },
         update: function (html, style) {
             style = style || '';
@@ -218,7 +220,9 @@ $(function () {
 
     // 标题编辑
     $('.n_title').click(function () {
-        SECTION_EDITOR.open(this, ['.btn-update-txt', '.btn-cancel']);
+        if(pageState == 'edit'){
+            SECTION_EDITOR.open(this, ['.btn-update-txt', '.btn-cancel']);
+        }
     });
     /* ==== 区块处理 ==== */
     var contentArea = $('.n_content');
@@ -560,8 +564,8 @@ $(function () {
                     videoUrl = 'http://www.tudou.com/programs/view/html5embed.action?type=0&code=' + RegExp.$1 + '&lcode=';
                 } else if (/v\/([\w=]+==)/.test(videoUrl)) {
                     isMp4 = true;
-                    videoUrl = BASE_URL + '/tudou-video-url?vid=' + RegExp.$1;
-                    posterUrl = BASE_URL + '/tudou-video-poster?vid=' + RegExp.$1;
+                    videoUrl = baseUrl + '/tudou-video-url?vid=' + RegExp.$1;
+                    posterUrl = baseUrl + '/tudou-video-poster?vid=' + RegExp.$1;
                     ;
                 } else if (/\/([^\/]+)\/([^\.\/]+)\.html/.test(videoUrl)) {
                     videoUrl = 'http://www.tudou.com/programs/view/html5embed.action?type=0&code=' + RegExp.$2 + '&lcode=' + RegExp.$1;
@@ -570,7 +574,7 @@ $(function () {
                     return false;
                 }
             } else if (videoUrl.indexOf('v.qq.com') > -1) {
-                if (/\/(\w{11})\.html$/.test(videoUrl) || /vid=(\w{11})/.test(videoUrl)) {
+                if (/\/(\w{11})\.html/.test(videoUrl) || /vid=(\w{11})/.test(videoUrl)) {
                     videoUrl = 'http://v.qq.com/iframe/player.html?vid=' + RegExp.$1;
                 } else {
                     alert('你输入的腾讯视频地址无法解析！');
@@ -578,8 +582,8 @@ $(function () {
                 }
             } else if (videoUrl.indexOf('365yg.com') > -1 || videoUrl.indexOf('toutiao.com') > -1) { // 今日头条
                 isMp4 = true;
-                posterUrl = BASE_URL + '/toutiao-video-poster?url=' + encodeURIComponent(videoUrl);
-                videoUrl = BASE_URL + '/toutiao-video-url?url=' + encodeURIComponent(videoUrl);
+                posterUrl = baseUrl + '/toutiao-video-poster?url=' + encodeURIComponent(videoUrl);
+                videoUrl =  baseUrl + '/toutiao-video-url?url=' + encodeURIComponent(videoUrl);
             }
 
             var html;
@@ -608,10 +612,16 @@ $(function () {
         if (isEdit) return;
         isEdit = true;
 
+        var editArea = contentArea;
+        do{
+            editArea = editArea.find(' > *');
+        } while(editArea.length == 1)
+
         // 区块处理：通过 page-module 标识，增加删除按钮
-        contentArea.find(' > *').each(function () {
-            var children = $(this).find('p');
-            wrapItem(children.length ? children : this);
+        editArea.each(function () {
+            // var children = $(this).find(' > *');
+            // wrapItem(children.length ? children : this);
+            wrapItem(this);
         });
     }
 
@@ -650,17 +660,28 @@ $(function () {
     // 创建新行
     function newLine() {
         startEdit();
-        wrapItem($('<p style="font-size:14px">点击编辑新行</p>').insertAfter('.page-module:last'));
+        var lastLine = $('.page-module:last');
+        var newLineEl = $('<p style="font-size:14px">点击编辑新行</p>');
+        if(lastLine.length){
+            newLineEl.insertAfter(lastLine);
+        } else {
+            newLineEl.appendTo('.n_content');
+        }
+        wrapItem(newLineEl);
         $(window).scrollTop($('.page-module:last').click().position().top);
     }
 
     function savePage() {
         toggleState('view');
 
+        buttonArea.detach();
+
         $.post('/save', {
             page: location.pathname,
-            data: document.documentElement.outerHTML
+            content: $('.n_content').html(),
+            title: $('.n_title').html()
         }, function (res) {
+            buttonArea.appendTo(document.body);
             if (res.code == 0) {
                 swal('操作提示', '页面保存成功！', 'success');
             } else {
@@ -669,14 +690,25 @@ $(function () {
         }, 'json');
     }
 
-
-    var toggleEl = $('<button class="btn-toggle">编辑</button>').on('click', toggleState).appendTo(document.body);
-    $('<button class="btn-save">保存</button>').on('click', savePage).appendTo(document.body);
-    $('<button class="btn-newline">新建一行</button>').on('click', newLine).appendTo(document.body);
+    var buttonArea = $('<div id="J_EDIT_BTN_AREA"></div>').appendTo(document.body);
+    var toggleEl = $('<button class="btn-toggle">编辑</button>').on('click', toggleState).appendTo(buttonArea);
+    $('<button class="btn-save">保存</button>').on('click', savePage).appendTo(buttonArea);
+    $('<button class="btn-newline">新建一行</button>').on('click', newLine).appendTo(buttonArea);
 
     // 支持参数设置页面状态
     var pageState = /[\?&]state=(\w+)/gi.test(location.search) ? RegExp.$1 : 'view';
     toggleState(pageState);
+
+    // 设置默认显示哪些编辑按钮
+    var btnCfg = /[\?&]fn=([\w,]+)/gi.test(location.search) ? RegExp.$1.split(',') : [0, 1, 2];
+    var baseItems = ['.btn-delete', '.btn-cancel'];
+    var itemsMap = {
+        10: [],
+        0: ['.btn-add-txt', '.btn-update-txt'],
+        1: ['.btn-add-pic'],
+        2: ['.btn-add-video'],
+    };
+    var BASE_BTNS = btnCfg.reduce((arr, idx) => arr.concat(itemsMap[idx]), baseItems);
 
     // 删除 body 上定义的 height
     if ($(document.body).css('height')) {

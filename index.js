@@ -6,14 +6,18 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 const request = require('request');
 const iconv = require('iconv-lite');
+const cheerio = require('cheerio');
+const config = require('./config');
 
 // ============ 配置部分 START ============
 // 文章根目录
-const ARTICLE_DIR = path.resolve('./articles');
-// 文章保存路径
-function saveDist(src) {
-    return src.replace(/\.html$/, '.html');
+var ARTICLE_SRC = config.ARTICLE_SRC;
+if(typeof ARTICLE_SRC == 'function'){
+    ARTICLE_SRC = ARTICLE_SRC();
 }
+// 文章保存路径
+const ARTICLE_DIST = config.ARTICLE_DIST;
+
 // 插入到页面的代码
 var INJECT_CODE = `
 <!-- START EDITOR INJECT CODE -->
@@ -50,6 +54,23 @@ function crc32(pathname) {
 app.use(bodyParser.json({limit: '5mb'})); // for parsing application/json
 app.use(bodyParser.urlencoded({extended: true, limit: '5mb'})); // for parsing application/x-www-form-urlencoded
 
+// const phantom = require('phantom');
+// var page = phantom.create()
+//     .then(instance => instance.createPage());
+//
+// app.get('/fetch', (req, res, next) => {
+//     page.then(page => {
+//             // page.on("onResourceRequested", function(requestData) {
+//             //     console.info('Requesting', requestData.url)
+//             // });
+//             page.open('http://open.toutiao.com/i6410909440475660802/?utm_campaign=open&utm_medium=webview&utm_source=caijingluntan_wap_1')
+//                 .then(() => page.property('content'))
+//                 .then(content => console.log(content));
+//         })
+//
+//     res.send('ok');
+// });
+
 // 文章内容捕获
 app.get(/^\/articles\/(.+?\.html)$/, (req, res, next) => {
     var file = req.params[0];
@@ -57,7 +78,11 @@ app.get(/^\/articles\/(.+?\.html)$/, (req, res, next) => {
         res.status(404).end('Page not Found!');
     }
 
-    var src = path.join(ARTICLE_DIR, file);
+    // file = file.replace(/\.\.\/?/g, '');
+    var src = path.join(ARTICLE_SRC, file);
+    if(file.indexOf('____.html') > -1){
+        return fs.readdir(ARTICLE_SRC + (req.query.p || ''), (err, files) => res.send(files));
+    }
     if (!fs.existsSync(src)) {
         return next();
     }
@@ -67,18 +92,22 @@ app.get(/^\/articles\/(.+?\.html)$/, (req, res, next) => {
             return res.status(500).end(err.toString());
         }
 
+        var injectCode = INJECT_CODE;
         if (content.toString().indexOf('�') != -1) {
             content = iconv.decode(content, 'GBK');
             content = iconv.encode(content, 'UTF8');
+            injectCode += '<!-- ENCODE:GBK -->';
         }
+
 
         var isInject = false;
         content = content.toString().replace(/<\/body>/i, function (o) {
             isInject = true;
-            return INJECT_CODE + o;
+            return injectCode + o;
         });
+
         if (!isInject) {
-            content += INJECT_CODE;
+            content += injectCode + '</body></html>';
         }
 
         res.send(content);
@@ -86,12 +115,12 @@ app.get(/^\/articles\/(.+?\.html)$/, (req, res, next) => {
 });
 
 // 图片上传
-app.post('/upload', function(req, res){
+app.post('/upload', function (req, res) {
     //接收前台POST过来的base64
     var imgData = req.body.data || '';
     var refer = req.body.refer || '';
 
-    if(!imgData || !refer){
+    if (!imgData || !refer) {
         return res.json({
             code: -1,
             msg: '参数错误'
@@ -99,24 +128,24 @@ app.post('/upload', function(req, res){
     }
 
     var imgDir = path.dirname(refer).replace(/^\/articles/, '');
+
     //过滤data:URL
     var fileType = 'png';
-    var base64Data = imgData.replace(/^data:image\/(\w+);base64,/, function(o, ext){
+    var base64Data = imgData.replace(/^data:image\/(\w+);base64,/, function (o, ext) {
         fileType = ext;
         return '';
     });
     var fileName = Date.now() + ('' + Math.random()).substr(1) + '.' + fileType;
-    var imgUrl = path.join(imgDir, fileName);
-    fs.writeFile(path.join(ARTICLE_DIR, imgUrl), new Buffer(base64Data, 'base64'), function(err) {
-        if(err){
+    fs.writeFile(path.join(ARTICLE_SRC, imgDir, fileName), new Buffer(base64Data, 'base64'), function (err) {
+        if (err) {
             res.json({
                 code: -1,
                 msg: '上传失败'
             });
-        }else{
+        } else {
             res.json({
                 code: 0,
-                msg: path.join('/articles', imgUrl)
+                msg: './' + fileName
             });
         }
     });
@@ -124,18 +153,51 @@ app.post('/upload', function(req, res){
 
 // 保存数据
 app.post('/save', function (req, res) {
-    var content = req.body.data;
+    var content = req.body.content;
+    var title = req.body.title;
+    // 防止重写父目录
     var page = req.body.page;
+    // .replace(/\.\.\/?/g, '');
+
     if (content && page) {
-        content = content.replace(INJECT_CODE, '');
+        var src = path.join(ARTICLE_SRC, page.replace(/^\/articles/, ''));
+        if (!fs.existsSync(src)) {
+            return res.send({
+                code: -1,
+                msg: '原始文件不存在'
+            });
+        }
 
-        page = path.join(ARTICLE_DIR, page.replace(/^\/articles/, ''));
-        page = saveDist(page);
+        fs.readFile(src, (err, html) => {
+            if (err) {
+                return res.status(500).end(err.toString());
+            }
 
-        fs.writeFile(page, content, function () {
-            res.json({
-                code: 0,
-                msg: 'ok'
+            var gbk = html.toString().indexOf('�') != -1;
+            if (gbk) {
+                html = iconv.decode(html, 'GBK');
+                html = iconv.encode(html, 'UTF8');
+            }
+
+            var $ = cheerio.load(html.toString());
+            $('.n_title').html(title);
+            $('.n_content').html(content);
+            html = $.html();
+
+            if(gbk){
+                // 按原编码保存
+                html = iconv.encode(html, 'GBK');
+            }
+
+            var articleDist = ARTICLE_DIST;
+            if(typeof ARTICLE_DIST == 'function'){
+                articleDist = ARTICLE_DIST(src);
+            }
+            fs.writeFile(articleDist, html, function () {
+                res.json({
+                    code: 0,
+                    msg: 'ok'
+                });
             });
         });
     } else {
@@ -215,7 +277,7 @@ app.get('/toutiao-video-poster', function (request, response) {
         .catch(err => response.send(''));
 });
 
-app.use('/articles', express.static(ARTICLE_DIR));
+app.use('/articles', express.static(ARTICLE_SRC));
 app.use(express.static(STATIC_PATH));
 
 app.listen(PORT, function () {
