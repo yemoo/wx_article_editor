@@ -204,7 +204,7 @@ $(function () {
                 section = section.children(':last');
             }
             if (section.is('.btn-delete-module')) {
-                section = $('<p></p>').appendTo(section.closest('.page-module'));
+                section = $('<p>点击编辑该行</p>').appendTo(section.closest('.page-module'));
             }
 
             this.close();
@@ -625,6 +625,9 @@ $(function () {
     var isEdit = false;
 
     function wrapItem(item) {
+        if ($(item).text().trim() === '') {
+            $(item).text('点击编辑该行');
+        }
         return $(item).wrap('<div class="page-module"></div>').before('<span class="btn-delete-module">删除</span>');
     }
 
@@ -639,7 +642,7 @@ $(function () {
             var editArea = contentArea;
             do {
                 editArea = editArea.find(' > *');
-            } while (editArea.length == 1)
+            } while (editArea.length == 1 && editArea.children().length)
 
             // 区块处理：通过 page-module 标识，增加删除按钮
             editArea.each(function () {
