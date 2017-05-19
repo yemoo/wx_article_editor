@@ -1,13 +1,15 @@
 body{
-    padding-bottom: 60px;
+    padding-bottom: 80px;
+    padding-top: 80px;
 }
 .page-module{
-    border: 1px dashed #F4A13F;
+    border: 1px dashed #c9c9c9;
     box-sizing: border-box;
+    margin-top: -1px;
 }
 /* 模块删除按钮 */
 .page-module  .btn-delete-module{
-    background-color: #F4A13F;
+    background-color: #ff8e8e;
     color: #fff;
     font-size: 14px;
     padding: 3px 10px;
@@ -74,7 +76,7 @@ body{
     position: fixed;
     /*top: 50%;*/
     left: 0;
-    bottom: 0;
+    bottom: 80px;
     width: 100%;
     font-size: 14px;
     background-color: #fff;
@@ -106,22 +108,21 @@ body{
 }
 
 /* 文本编辑弹出层 */
-#text-panel{
-    top: 50%;
-    bottom: auto;
-}
 #text-panel .header li{
     float: left;
     margin: 0 1px;
-}
-#text-panel .header li span{
-    display: inline-block;
     min-width: 28px;
     height: 27px;
     text-align: center;
     line-height: 27px;
     border: 1px solid transparent;
     cursor: pointer;
+}
+#text-panel .header li span{
+    display: block;
+}
+#text-panel .header li span:before{
+    line-height: inherit;
 }
 #text-panel .header .active{
     border-color: #F4A13F;
@@ -169,7 +170,9 @@ body{
     color: #F4A13F;
 }
 
-
+#bgcolor-panel, #fontsize-panel{
+    bottom: 0;
+}
 #bgcolor-panel .header .btn-clear{
     color: #f00;
     float: right;
@@ -207,7 +210,7 @@ body{
 #fontsize-panel li{
     display: block;
     text-align: center;
-    line-height: 30px;
+    line-height: 34px;
 }
 
 .icon-doc-text{
@@ -243,7 +246,7 @@ body{
     max-width: 90%;
     display: block;
     margin: 0 auto;
-    max-height: 300px;
+    max-height: 150px;
 }
 #img-panel .body .upload{
     display: block;
@@ -313,29 +316,109 @@ body{
     color: #F1983F;
 }
 
-/* 编辑预览按钮 */
-.btn-toggle, .btn-save, .btn-newline{
+
+.edit-area{
+    background-color: #fff;
+    height: 80px;
     position: fixed;
-    border:none;
-    bottom: 0;
-    left: auto;
+    left: 0;
     right: 0;
-    padding: 5px 15px;
-    font-size: 14px;
-    background-color: #F4A13F;
-    color: #fff;
-    z-index: 1000;
+    bottom: 0;
 }
-.btn-toggle{
+.edit-area-top{
+    top: 0;
+    bottom: auto;
+}
+/* 编辑预览按钮 */
+.btn-edit, .btn-preview, .btn-save, .btn-newline{
+    position: absolute;
+    border:none;
+    font-size: 14px;
+    color: #333;
+    z-index: 1000;
+    width: 80px;
+    height: 80px;
+    text-align: center;
+    padding-top: 50px;
+    padding-bottom: 5px;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: 50% 10px;
+    background-size: 40px 40px
+}
+.btn-edit, .btn-preview{
     left: 0;
     right: auto;
+}
+
+.btn-edit{
+    background-image: url('/edit.png');
+}
+.btn-preview{
+    background-image: url('/preview.png');
 }
 
 .btn-newline{
     left: 50%;
     transform: translateX(-50%);
+    background-image: url('/newline.png');
+}
+.btn-save{
+    left: auto;
+    right: 0;
+    background-image: url('/save.png');
+}
+
+.edit-area-top .btn-edit,
+.edit-area-top .btn-preview,
+.edit-area-top .btn-save,
+.edit-area-top .btn-newline{
+    bottom: auto;
+    top: 0;
 }
 
 .n_body, .n_content{
     overflow: visible;
+}
+
+.loading-cover {
+    background-color: rgba(0, 0, 0, 0.6);
+    position: fixed;
+    top: 0;
+    bottom:0;
+    left: 0;
+    right: 0;
+    z-index: 100000;
+    display: none;
+}
+@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}@keyframes scale-nav{0%{transform:scale(1)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
+.loading-info{
+    display: inline-block;
+    font-size: 12px;
+    color: #999;
+    height: 20px;
+    width: 60px;
+    padding-top: 50px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -20px;
+    margin-left: -30px;
+    color: #fff;
+    text-align: center;
+}
+.loading-info:before{
+    border-radius: 4px;
+    width: 40px;
+    height: 40px;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 10px;
+
+    content: '';
+    border: 2px solid rgba(255,255,255,0.7);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin .8s infinite linear;
 }

@@ -1,6 +1,5 @@
 $(function () {
     /* ==== start 公共函数 ==== */
-    var baseUrl = location.href.replace(location.pathname, '');
     var dialogIndex = 1000;
     // 弹出层函数
     function createDialog(config) {
@@ -27,6 +26,16 @@ $(function () {
                 dialog.detach();
             }
         };
+    }
+
+    var loadingHTML = $('<div class="loading-cover"><div class="loading-info">上传中...</div></div>').appendTo(document.body);
+
+    function showLoading() {
+        loadingHTML.show();
+    }
+
+    function hideLoading() {
+        loadingHTML.hide();
     }
 
     //对图片旋转处理 added by lzk
@@ -90,7 +99,8 @@ $(function () {
         var maxWidth = 600;
         var maxHeight = 600;
 
-        img.onload = function(){
+        img.onload = function () {
+
             var width = img.width;
             var height = img.height;
 
@@ -110,7 +120,7 @@ $(function () {
                 }
             }
 
-            ratio = Math.min(ratio / sizeRatio, 1);
+            ratio = Math.min.call(Math, ratio, sizeRatio, 1);
 
             var canvas = document.createElement('canvas');
             canvas.width = width;
@@ -121,26 +131,26 @@ $(function () {
             ctx.drawImage(img, 0, 0, width, height);
 
             var base64;
-            if (navigator.userAgent.match(/Android/i)) {// 修复android
-                var encoder = new JPEGEncoder();
-                base64 = encoder.encode(ctx.getImageData(0, 0, width, height), ratio * 100);
-            } else {
-                if (orientation != "" && orientation != 1) {
-                    switch (orientation) {
-                        case 6://需要顺时针（向左）90度旋转
-                            rotateImg(img, 'left', canvas);
-                            break;
-                        case 8://需要逆时针（向右）90度旋转
-                            rotateImg(img, 'right', canvas);
-                            break;
-                        case 3://需要180度旋转
-                            rotateImg(img, 'right', canvas);//转两次
-                            rotateImg(img, 'right', canvas);
-                            break;
-                    }
+            // if (navigator.userAgent.match(/Android/i)) {// 修复android
+            //     var encoder = new JPEGEncoder();
+            //     base64 = encoder.encode(ctx.getImageData(0, 0, width, height), ratio * 100);
+            // } else {
+            if (orientation != "" && orientation != 1) {
+                switch (orientation) {
+                    case 6://需要顺时针（向左）90度旋转
+                        rotateImg(img, 'left', canvas);
+                        break;
+                    case 8://需要逆时针（向右）90度旋转
+                        rotateImg(img, 'right', canvas);
+                        break;
+                    case 3://需要180度旋转
+                        rotateImg(img, 'right', canvas);//转两次
+                        rotateImg(img, 'right', canvas);
+                        break;
                 }
-                base64 = canvas.toDataURL("image/jpeg", ratio);
             }
+            base64 = canvas.toDataURL("image/jpeg", ratio);
+            // }
             //data url的形式
             callback && callback(base64);
         };
@@ -185,23 +195,29 @@ $(function () {
         open: function (section, items) {
             section = $(section);
             // 点击当前编辑块，不处理
-            if (section.is('.active-section, .active-section .content')) return true;
+            if (section.closest('.active-section').length) return true;
             // 点击菜单区域
             if (section.closest('.section-menus').length) return true;
 
-            if (section.is('.page-module')) section = section.children(':last');
+            if (section.is('.page-module')) {
+                if (section.find('.active-section').length) return true;
+                section = section.children(':last');
+            }
+            if (section.is('.btn-delete-module')) {
+                section = $('<p></p>').appendTo(section.closest('.page-module'));
+            }
 
             this.close();
             this.activeSection = section;
             this.activeSectionWrapper.insertBefore(section);
             this.activeSectionWrapper.find('.content').append(section);
 
-            // if (typeof items != 'undefined') {
+            if (typeof items != 'undefined') {
                 items = items || BASE_BTNS;
                 menus.find('li').addClass('disabled').filter(items.join(',')).removeClass('disabled');
-            // } else {
-            //     menus.find('li').removeClass('disabled');
-            // }
+            } else {
+                menus.find('li').removeClass('disabled');
+            }
         },
         update: function (html, style) {
             style = style || '';
@@ -220,7 +236,7 @@ $(function () {
 
     // 标题编辑
     $('.n_title').click(function () {
-        if(pageState == 'edit'){
+        if (pageState == 'edit') {
             SECTION_EDITOR.open(this, ['.btn-update-txt', '.btn-cancel']);
         }
     });
@@ -230,6 +246,9 @@ $(function () {
     contentArea.on('click', '.btn-delete-module', function () {
         SECTION_EDITOR.close();
         $(this).closest('.page-module').remove();
+        if (contentArea.html().trim() === '') {
+            newLine();
+        }
         return false;
     });
     // 编辑区块，可以编辑任意元素
@@ -252,14 +271,14 @@ $(function () {
         textEditor = createDialog({
             id: 'text-panel',
             header: '<ul>' +
-            '<li><span class="icon-bold" data-style="font-weight:bold"></span></li>' +
-            '<li><span class="icon-underline" data-style="text-decoration:underline"></span></li>' +
-            '<li><span class="icon-italic" data-style="font-style: italic"></span></li>' +
-            '<li><span class="icon-color-adjust" data-panel="bgcolor" data-attr="background:"></span></li>' +
-            '<li><span class="icon-font" data-panel="fontsize" data-attr="font-size:"></span></li>' +
-            '<li><span class="icon-align-left" data-group="align" data-style="text-align:left"></span></li>' +
-            '<li><span class="icon-align-center" data-group="align" data-style="display:block;text-align:center"></span></li>' +
-            '<li><span class="icon-align-right" data-group="align" data-style="display:block;text-align:right"></span></li>' +
+            '<li data-style="font-weight:bold"><span class="icon-bold"></span></li>' +
+            '<li data-style="text-decoration:underline"><span class="icon-underline"></span></li>' +
+            '<li data-style="font-style: italic"><span class="icon-italic"></span></li>' +
+            '<li data-panel="bgcolor" data-attr="background:"><span class="icon-color-adjust"></span></li>' +
+            '<li data-panel="fontsize" data-attr="font-size:"><span class="icon-font"></span></li>' +
+            '<li data-group="align" data-style="text-align:left"><span class="icon-align-left"></span></li>' +
+            '<li data-group="align" data-style="display:block;text-align:center"><span class="icon-align-center"></span></li>' +
+            '<li data-group="align" data-style="display:block;text-align:right"><span class="icon-align-right"></span></li>' +
             '</ul>' +
             '<span class="btn-clear">清空</span>',
             body: '<textarea placeholder="请输入文字内容"></textarea><input type="text" name="link" placeholder="请输入文字链接地址（可选）" />',
@@ -326,7 +345,7 @@ $(function () {
 
         var textarea = textEditor.body.find('textarea');
         var linkInput = textEditor.body.find('input');
-        var btns = textEditor.header.find('li span');
+        var btns = textEditor.header.find('li');
 
         function updateStyle() {
             var styles = $.map(btns.filter('.active'), function (btn) {
@@ -336,7 +355,7 @@ $(function () {
         }
 
         // 修改文本样式
-        textEditor.header.on('click', 'ul span', function () {
+        textEditor.header.on('click', 'ul li', function () {
             var self = $(this);
             var panel = self.data('panel');
             if (self.data('style') && !panel) {
@@ -393,7 +412,7 @@ $(function () {
             state = 'add';
             // 重置编辑框内容和样式
             textEditor.body.find('textarea').val('').removeAttr('style');
-            textEditor.header.find('li span').removeClass('active');
+            btns.removeClass('active');
             textEditor.open();
         });
         // 点击菜单：修改文字
@@ -405,7 +424,7 @@ $(function () {
             // 将样式和文本同步到编辑框
             textEditor.body.find('textarea').val(text).attr('style', styles);
             // 将已有的样式对应按钮高亮
-            textEditor.header.find('li span').removeClass('active').each(function () {
+            btns.removeClass('active').each(function () {
                 var btn = $(this);
                 var attr = btn.data('attr');
                 var style = btn.data('style');
@@ -448,6 +467,7 @@ $(function () {
         $(document).on('change', '#img-panel .upload input', function () {
             var file = this.files[0];   //读取文件
             if (!file) return false;
+            showLoading();
 
             var reader = new FileReader();
 
@@ -466,8 +486,9 @@ $(function () {
                         $.post('/upload', {
                             refer: location.pathname,
                             data: result
-                        },function(data){
-                            if(data.code == 0){
+                        }, function (data) {
+                            hideLoading();
+                            if (data.code == 0) {
                                 preview.html('<img style="display: block;margin: 0px auto;" src="' + data.msg + '">');
                             } else {
                                 swal('上传提示', '上传失败，请重试！', 'error');
@@ -547,7 +568,7 @@ $(function () {
         });
         // 提交
         videoEditor.footer.on('click', '.btn-submit', function () {
-            var videoUrl = video.val();
+            var videoUrl = /.*?(http:.+)$/.test(video.val()) && RegExp.$1;
             var posterUrl;
             var isMp4;
 
@@ -562,10 +583,10 @@ $(function () {
             } else if (videoUrl.indexOf('tudou.com') > -1) {   // 土豆网
                 if (/view\/(\w+)/.test(videoUrl)) {
                     videoUrl = 'http://www.tudou.com/programs/view/html5embed.action?type=0&code=' + RegExp.$1 + '&lcode=';
-                } else if (/v\/([\w=]+==)/.test(videoUrl)) {
+                } else if (/v\/([\w=]+==|\d{9})/.test(videoUrl)) {
                     isMp4 = true;
-                    videoUrl = baseUrl + '/tudou-video-url?vid=' + RegExp.$1;
-                    posterUrl = baseUrl + '/tudou-video-poster?vid=' + RegExp.$1;
+                    videoUrl = '/tudou-video-url?vid=' + encodeURIComponent(RegExp.$1);
+                    posterUrl = '/tudou-video-poster?vid=' + encodeURIComponent(RegExp.$1);
                     ;
                 } else if (/\/([^\/]+)\/([^\.\/]+)\.html/.test(videoUrl)) {
                     videoUrl = 'http://www.tudou.com/programs/view/html5embed.action?type=0&code=' + RegExp.$2 + '&lcode=' + RegExp.$1;
@@ -575,22 +596,22 @@ $(function () {
                 }
             } else if (videoUrl.indexOf('v.qq.com') > -1) {
                 if (/\/(\w{11})\.html/.test(videoUrl) || /vid=(\w{11})/.test(videoUrl)) {
-                    videoUrl = 'http://v.qq.com/iframe/player.html?vid=' + RegExp.$1;
+                    videoUrl = 'http://v.qq.com/iframe/player.html?vid=' + encodeURIComponent(RegExp.$1);
                 } else {
                     alert('你输入的腾讯视频地址无法解析！');
                     return false;
                 }
             } else if (videoUrl.indexOf('365yg.com') > -1 || videoUrl.indexOf('toutiao.com') > -1) { // 今日头条
                 isMp4 = true;
-                posterUrl = baseUrl + '/toutiao-video-poster?url=' + encodeURIComponent(videoUrl);
-                videoUrl =  baseUrl + '/toutiao-video-url?url=' + encodeURIComponent(videoUrl);
+                posterUrl = '/toutiao-video-poster?url=' + encodeURIComponent(videoUrl);
+                videoUrl = '/toutiao-video-url?url=' + encodeURIComponent(videoUrl);
             }
 
             var html;
             if (isMp4) {
-                html = '<video src="' + videoUrl + '" preload="true" controls webkit-playsinline playsinline style="min-height: 240px;max-width: 100%;" preload="true" webkit-playsinline poster="' + posterUrl + '"></video>';
+                html = '<video src="' + videoUrl + '" preload="true" controls style="height: 240px;width: 100%;" preload="true" poster="' + posterUrl + '"></video>';
             } else {
-                html = '<iframe width="100%" src="' + videoUrl + '" frameborder="0" style="max-width: 100%;"></iframe>';
+                html = '<iframe src="' + videoUrl + '" data-src="' + videoUrl + '" frameborder="0" style="width: 100%;"></iframe>';
             }
 
             SECTION_EDITOR.add(html);
@@ -612,17 +633,21 @@ $(function () {
         if (isEdit) return;
         isEdit = true;
 
-        var editArea = contentArea;
-        do{
-            editArea = editArea.find(' > *');
-        } while(editArea.length == 1)
+        if (contentArea.html().trim() === '') {
+            newLine();
+        } else {
+            var editArea = contentArea;
+            do {
+                editArea = editArea.find(' > *');
+            } while (editArea.length == 1)
 
-        // 区块处理：通过 page-module 标识，增加删除按钮
-        editArea.each(function () {
-            // var children = $(this).find(' > *');
-            // wrapItem(children.length ? children : this);
-            wrapItem(this);
-        });
+            // 区块处理：通过 page-module 标识，增加删除按钮
+            editArea.each(function () {
+                // var children = $(this).find(' > *');
+                // wrapItem(children.length ? children : this);
+                wrapItem(this);
+            });
+        }
     }
 
     // 取消编辑
@@ -636,7 +661,10 @@ $(function () {
         var pageModules = contentArea.find('.page-module');
         pageModules.find('.btn-delete-module').remove();
         pageModules.each(function () {
-            $(this).children().insertBefore(this);
+            var children = $(this).children();
+            if (children.html() !== '点击编辑该行') {
+                children.insertBefore(this);
+            }
             $(this).remove();
         });
     }
@@ -648,11 +676,11 @@ $(function () {
 
         if (state == 'edit') {
             pageState = 'edit';
-            toggleEl.text('预览');
+            $('.btn-edit').text('预览').removeClass('btn-edit').addClass('btn-preview');
             startEdit();
         } else {
             pageState = 'view';
-            toggleEl.text('编辑');
+            $('.btn-preview').text('编辑').removeClass('btn-preview').addClass('btn-edit');
             cancelEdit();
         }
     }
@@ -661,20 +689,23 @@ $(function () {
     function newLine() {
         startEdit();
         var lastLine = $('.page-module:last');
-        var newLineEl = $('<p style="font-size:14px">点击编辑新行</p>');
-        if(lastLine.length){
+        var newLineEl = $('<p style="font-size:14px">点击编辑该行</p>');
+        if (lastLine.length) {
             newLineEl.insertAfter(lastLine);
         } else {
             newLineEl.appendTo('.n_content');
         }
         wrapItem(newLineEl);
-        $(window).scrollTop($('.page-module:last').click().position().top);
+
+        lastLine = $('.page-module:last');
+        lastLine.find('p').trigger('click');
+        $(window).scrollTop(lastLine.position().top);
     }
 
     function savePage() {
         toggleState('view');
 
-        buttonArea.detach();
+        var buttonArea = $('.edit-area').detach();
 
         $.post('/save', {
             page: location.pathname,
@@ -690,14 +721,15 @@ $(function () {
         }, 'json');
     }
 
-    var buttonArea = $('<div id="J_EDIT_BTN_AREA"></div>').appendTo(document.body);
-    var toggleEl = $('<button class="btn-toggle">编辑</button>').on('click', toggleState).appendTo(buttonArea);
-    $('<button class="btn-save">保存</button>').on('click', savePage).appendTo(buttonArea);
-    $('<button class="btn-newline">新建一行</button>').on('click', newLine).appendTo(buttonArea);
+    var bottomButtonArea = $('<div class="edit-area edit-area-bottom"></div>').appendTo(document.body);
+    $('<button class="btn-edit">编辑</button>').on('click', toggleState).appendTo(bottomButtonArea);
+    $('<button class="btn-save">保存</button>').on('click', savePage).appendTo(bottomButtonArea);
+    $('<button class="btn-newline">新建一行</button>').on('click', newLine).appendTo(bottomButtonArea);
 
-    // 支持参数设置页面状态
-    var pageState = /[\?&]state=(\w+)/gi.test(location.search) ? RegExp.$1 : 'view';
-    toggleState(pageState);
+    var topButtonArea = $('<div class="edit-area edit-area-top"></div>').appendTo(document.body);
+    $('<button class="btn-edit">编辑</button>').on('click', toggleState).appendTo(topButtonArea);
+    $('<button class="btn-save">保存</button>').on('click', savePage).appendTo(topButtonArea);
+    $('<button class="btn-newline">新建一行</button>').on('click', newLine).appendTo(topButtonArea);
 
     // 设置默认显示哪些编辑按钮
     var btnCfg = /[\?&]fn=([\w,]+)/gi.test(location.search) ? RegExp.$1.split(',') : [0, 1, 2];
@@ -708,7 +740,13 @@ $(function () {
         1: ['.btn-add-pic'],
         2: ['.btn-add-video'],
     };
-    var BASE_BTNS = btnCfg.reduce((arr, idx) => arr.concat(itemsMap[idx]), baseItems);
+    var BASE_BTNS = btnCfg.reduce(function (arr, idx) {
+        return arr.concat(itemsMap[idx]);
+    }, baseItems);
+
+    // 支持参数设置页面状态
+    var pageState = /[\?&]state=(\w+)/gi.test(location.search) ? RegExp.$1 : 'view';
+    toggleState(pageState);
 
     // 删除 body 上定义的 height
     if ($(document.body).css('height')) {

@@ -12,7 +12,7 @@ const config = require('./config');
 // ============ 配置部分 START ============
 // 文章根目录
 var ARTICLE_SRC = config.ARTICLE_SRC;
-if(typeof ARTICLE_SRC == 'function'){
+if (typeof ARTICLE_SRC == 'function') {
     ARTICLE_SRC = ARTICLE_SRC();
 }
 // 文章保存路径
@@ -23,10 +23,10 @@ var INJECT_CODE = `
 <!-- START EDITOR INJECT CODE -->
 <link rel="stylesheet" href="/fontello/css/fontello.css">
 <link rel="stylesheet" href="/sweetalert.css">
-<link rel="stylesheet" href="/editor.css">
+<link rel="stylesheet" href="/editor.css?{ts}">
 <script src="/exif.js"></script>
 <script src="/sweetalert.min.js"></script>
-<script src="/editor.js"></script>
+<script src="/editor.js?{ts}"></script>
 <!-- END EDITOR INJECT CODE -->`;
 // ============ 配置部分 END ============
 
@@ -39,11 +39,13 @@ const PORT = process.env.PORT || 3000;
 
 function crc32(pathname) {
     var n = function () {
-            for (var e = 0, t = new Array(256), n = 0; 256 != n; ++n) e = n, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, t[n] = e;
+            for (var e = 0, t = new Array(256),
+                     n = 0; 256 != n; ++n) e = n, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, e = 1 & e ? -306674912 ^ e >>> 1 : e >>> 1, t[n] = e;
             return "undefined" != typeof Int32Array ? new Int32Array(t) : t
         }(),
         r = function (e) {
-            for (var t, r, i = -1, o = 0, a = e.length; o < a;) t = e.charCodeAt(o++), t < 128 ? i = i >>> 8 ^ n[255 & (i ^ t)] : t < 2048 ? (i = i >>> 8 ^ n[255 & (i ^ (192 | t >> 6 & 31))], i = i >>> 8 ^ n[255 & (i ^ (128 | 63 & t))]) : t >= 55296 && t < 57344 ? (t = (1023 & t) + 64, r = 1023 & e.charCodeAt(o++), i = i >>> 8 ^ n[255 & (i ^ (240 | t >> 8 & 7))], i = i >>> 8 ^ n[255 & (i ^ (128 | t >> 2 & 63))], i = i >>> 8 ^ n[255 & (i ^ (128 | r >> 6 & 15 | (3 & t) << 4))], i = i >>> 8 ^ n[255 & (i ^ (128 | 63 & r))]) : (i = i >>> 8 ^ n[255 & (i ^ (224 | t >> 12 & 15))], i = i >>> 8 ^ n[255 & (i ^ (128 | t >> 6 & 63))], i = i >>> 8 ^ n[255 & (i ^ (128 | 63 & t))]);
+            for (var t, r, i = -1, o = 0,
+                     a = e.length; o < a;) t = e.charCodeAt(o++), t < 128 ? i = i >>> 8 ^ n[255 & (i ^ t)] : t < 2048 ? (i = i >>> 8 ^ n[255 & (i ^ (192 | t >> 6 & 31))], i = i >>> 8 ^ n[255 & (i ^ (128 | 63 & t))]) : t >= 55296 && t < 57344 ? (t = (1023 & t) + 64, r = 1023 & e.charCodeAt(o++), i = i >>> 8 ^ n[255 & (i ^ (240 | t >> 8 & 7))], i = i >>> 8 ^ n[255 & (i ^ (128 | t >> 2 & 63))], i = i >>> 8 ^ n[255 & (i ^ (128 | r >> 6 & 15 | (3 & t) << 4))], i = i >>> 8 ^ n[255 & (i ^ (128 | 63 & r))]) : (i = i >>> 8 ^ n[255 & (i ^ (224 | t >> 12 & 15))], i = i >>> 8 ^ n[255 & (i ^ (128 | t >> 6 & 63))], i = i >>> 8 ^ n[255 & (i ^ (128 | 63 & t))]);
             return i ^ -1
         },
         i = pathname + "?r=" + Math.random().toString(10).substring(2);
@@ -80,7 +82,7 @@ app.get(/^\/articles\/(.+?\.html)$/, (req, res, next) => {
 
     // file = file.replace(/\.\.\/?/g, '');
     var src = path.join(ARTICLE_SRC, file);
-    if(file.indexOf('____.html') > -1){
+    if (file.indexOf('____.html') > -1) {
         return fs.readdir(ARTICLE_SRC + (req.query.p || ''), (err, files) => res.send(files));
     }
     if (!fs.existsSync(src)) {
@@ -92,13 +94,14 @@ app.get(/^\/articles\/(.+?\.html)$/, (req, res, next) => {
             return res.status(500).end(err.toString());
         }
 
-        var injectCode = INJECT_CODE;
+        var injectCode = INJECT_CODE.replace(/\{ts\}/g, Date.now());
         if (content.toString().indexOf('�') != -1) {
             content = iconv.decode(content, 'GBK');
             content = iconv.encode(content, 'UTF8');
             injectCode += '<!-- ENCODE:GBK -->';
         }
 
+        // injectCode = '';
 
         var isInject = false;
         content = content.toString().replace(/<\/body>/i, function (o) {
@@ -145,7 +148,7 @@ app.post('/upload', function (req, res) {
         } else {
             res.json({
                 code: 0,
-                msg: './' + fileName
+                msg: fileName
             });
         }
     });
@@ -184,13 +187,13 @@ app.post('/save', function (req, res) {
             $('.n_content').html(content);
             html = $.html();
 
-            if(gbk){
+            if (gbk) {
                 // 按原编码保存
                 html = iconv.encode(html, 'GBK');
             }
 
             var articleDist = ARTICLE_DIST;
-            if(typeof ARTICLE_DIST == 'function'){
+            if (typeof ARTICLE_DIST == 'function') {
                 articleDist = ARTICLE_DIST(src);
             }
             fs.writeFile(articleDist, html, function () {
@@ -208,18 +211,33 @@ app.post('/save', function (req, res) {
     }
 });
 
+function getTudouVideo(vid, res){
+    var videoUrl = 'https://ups.youku.com/ups/get.json?vid=' + vid + '&ccode=0505&client_ip=0.0.0.0&client_ts=1491234773&utid=ACXYEMfZ%20UACAXT3bTq%20Rp%2Fq';
+    fetch(videoUrl).then(res => res.json()).then(json => res.redirect(json.data.stream[0].m3u8_url)).catch(err => res.send(err.toString()));
+}
+
+function getTudouPoster(vid, res){
+    var videoUrl = 'https://ups.youku.com/ups/get.json?vid=' + vid + '&ccode=0505&client_ip=0.0.0.0&client_ts=1491234773&utid=ACXYEMfZ%20UACAXT3bTq%20Rp%2Fq';
+    fetch(videoUrl).then(res => res.json()).then(json => res.redirect(json.data.video.logo)).catch(err => res.send(err.toString()));
+}
+
 // 土豆地址跳转
 app.get('/tudou-video-url', function (req, res) {
-    var videoUrl = 'https://ups.youku.com/ups/get.json?vid=' + req.query.vid + '&ccode=0505&client_ip=0.0.0.0&client_ts=1491234773&utid=ACXYEMfZ%20UACAXT3bTq%20Rp%2Fq';
-    fetch(videoUrl).then(res => res.json())
-        .then(json => res.redirect(json.data.stream[0].segs[0].cdn_url))
-        .catch(err => res.send(err.toString()));
+    if(/\d{9}/.test(req.query.vid)){
+        return fetch('http://video.tudou.com/v/' + req.query.vid).then(res => res.text())
+            .then(text => /viden: "([\w=]+==)"/.test(text) && getTudouVideo(RegExp.$1, res));
+    }
+
+    return getTudouVideo(req.query.vid, res);
+
 });
 app.get('/tudou-video-poster', function (req, res) {
-    var videoUrl = 'https://ups.youku.com/ups/get.json?vid=' + req.query.vid + '&ccode=0505&client_ip=0.0.0.0&client_ts=1491234773&utid=ACXYEMfZ%20UACAXT3bTq%20Rp%2Fq';
-    fetch(videoUrl).then(res => res.json())
-        .then(json => res.redirect(json.data.video.logo))
-        .catch(err => res.send(err.toString()));
+    if(/\d{9}/.test(req.query.vid)){
+        return fetch('http://video.tudou.com/v/' + req.query.vid).then(res => res.text())
+            .then(text => /viden: "([\w=]+==)"/.test(text) && getTudouPoster(RegExp.$1, res));
+    }
+
+    return getTudouPoster(req.query.vid, res);
 });
 
 // 今日头条视频
@@ -279,6 +297,25 @@ app.get('/toutiao-video-poster', function (request, response) {
 
 app.use('/articles', express.static(ARTICLE_SRC));
 app.use(express.static(STATIC_PATH));
+// 其他请求代理到原服务器
+app.all('*', function (req, res, next) {
+    var options = {
+        method: req.method,
+        url: 'http://123.56.118.226:8088/share-core' + req.params[0],
+        qs: req.query,
+        json: true,
+        body: req.body,
+        headers: req.headers
+    };
+    request(options, function (error, response, body) {
+        if (error) {
+            return next(error);
+        }
+        res.set(response.headers);
+        res.send(body);
+    })
+});
+
 
 app.listen(PORT, function () {
     console.log('Example app listening on port ' + PORT + '!')
