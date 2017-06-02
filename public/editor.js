@@ -187,6 +187,12 @@ $(function () {
         activeSection: null,
         close: function () {
             if (this.activeSection) {
+                // 同步修改浏览器 title
+                if (this.activeSection.closest('.n_title').length) {
+                    var title = this.activeSection.text();
+                    document.title = title;
+                    $('title').text(title);
+                }
                 this.activeSection.insertBefore(this.activeSectionWrapper);
             }
             this.activeSectionWrapper.detach();
@@ -451,13 +457,17 @@ $(function () {
             header: '图片上传' +
             '<span class="btn-delete">删除</span>',
             body: ' <div class="preview"></div>' +
-            '<div class="upload">点击上传<input type="file" accept="image/*"></div>' +
+            '<div class="upload">选择照片<input type="file" accept="image/*"></div>' +
             '<div class="link"><input type="text" name="link" placeholder="请输入图片链接地址（可选）"></div>',
-            footer: '<button class="btn-cancel">取消</button><button class="btn-submit">提交</button>'
+            footer: '<button class="btn-cancel">取消</button><button class="btn-submit">确认上传</button>'
         });
 
         menus.on('click', '.btn-add-pic:not(.disabled)', function () {
             state = 'add';
+            if ($('.upload-img').length >= window.MAX_UPLOAD_PICS) {
+                swal('上传提示', '一篇文章最多只能上传' + window.MAX_UPLOAD_PICS + '张图片哦~', 'error');
+                return false;
+            }
             imgEditor.open();
             preview.html('');
             linkInput.val('');
@@ -465,6 +475,7 @@ $(function () {
 
         // 图片上传
         $(document).on('change', '#img-panel .upload input', function () {
+            var self = $(this);
             var file = this.files[0];   //读取文件
             if (!file) return false;
             showLoading();
@@ -475,8 +486,9 @@ $(function () {
                 var result = this.result;   //result为data url的形式
 
                 // 大于5M，直接拒绝
-                if (result.length > 5 * 1024 * 1024) {
+                if (result.length > 0.5 * 1024 * 1024) {
                     swal('上传提示', '您上传的图片过大，请上传不超过5M的图片！', 'error');
+                    hideLoading();
                     return false;
                 }
 
@@ -489,10 +501,19 @@ $(function () {
                         }, function (data) {
                             hideLoading();
                             if (data.code == 0) {
-                                preview.html('<img style="display: block;margin: 0px auto;" src="' + data.msg + '">');
+                                var imgUrl = location.href;
+                                if (window.ORIGIN_ARTICLE_PATH) {
+                                    imgUrl = window.ORIGIN_ARTICLE_PATH + location.href.split('articles/')[1]
+                                }
+                                imgUrl = imgUrl.split('/');
+                                imgUrl.pop();
+                                imgUrl.push(data.msg);
+                                imgUrl = imgUrl.join('/');
+                                preview.html('<img style="display: block;margin: 0px auto;" class="upload-img" src="' + imgUrl + '">');
                             } else {
                                 swal('上传提示', '上传失败，请重试！', 'error');
                             }
+                            self.val('');
                         });
                     });
                 });
@@ -572,6 +593,7 @@ $(function () {
             var posterUrl;
             var isMp4;
 
+            var videoRoot = location.protocol + '//' + location.hostname + (location.port ? (':' + location.port) : '');
             // 优酷
             if (videoUrl.indexOf('youku.com') > -1) {
                 if (/id_([\w=]+)\.html/.test(videoUrl)) {
@@ -585,8 +607,8 @@ $(function () {
                     videoUrl = 'http://www.tudou.com/programs/view/html5embed.action?type=0&code=' + RegExp.$1 + '&lcode=';
                 } else if (/v\/([\w=]+==|\d{9})/.test(videoUrl)) {
                     isMp4 = true;
-                    videoUrl = '/tudou-video-url?vid=' + encodeURIComponent(RegExp.$1);
-                    posterUrl = '/tudou-video-poster?vid=' + encodeURIComponent(RegExp.$1);
+                    videoUrl = videoRoot + '/tudou-video-url?vid=' + encodeURIComponent(RegExp.$1);
+                    posterUrl = videoRoot + '/tudou-video-poster?vid=' + encodeURIComponent(RegExp.$1);
                     ;
                 } else if (/\/([^\/]+)\/([^\.\/]+)\.html/.test(videoUrl)) {
                     videoUrl = 'http://www.tudou.com/programs/view/html5embed.action?type=0&code=' + RegExp.$2 + '&lcode=' + RegExp.$1;
@@ -603,15 +625,15 @@ $(function () {
                 }
             } else if (videoUrl.indexOf('365yg.com') > -1 || videoUrl.indexOf('toutiao.com') > -1) { // 今日头条
                 isMp4 = true;
-                posterUrl = '/toutiao-video-poster?url=' + encodeURIComponent(videoUrl);
-                videoUrl = '/toutiao-video-url?url=' + encodeURIComponent(videoUrl);
+                posterUrl = videoRoot + '/toutiao-video-poster?url=' + encodeURIComponent(videoUrl);
+                videoUrl = videoRoot + '/toutiao-video-url?url=' + encodeURIComponent(videoUrl);
             }
 
             var html;
             if (isMp4) {
                 html = '<video src="' + videoUrl + '" preload="true" controls style="height: 240px;width: 100%;" preload="true" poster="' + posterUrl + '"></video>';
             } else {
-                html = '<iframe src="' + videoUrl + '" data-src="' + videoUrl + '" frameborder="0" style="width: 100%;"></iframe>';
+                html = '<iframe src="' + videoUrl + '" data-src="" frameborder="0" style="width: 100%;"></iframe>';
             }
 
             SECTION_EDITOR.add(html);
@@ -625,7 +647,7 @@ $(function () {
     var isEdit = false;
 
     function wrapItem(item) {
-        if ($(item).text().trim() === '') {
+        if ($(item).html().trim() === '') {
             $(item).text('点击编辑该行');
         }
         return $(item).wrap('<div class="page-module"></div>').before('<span class="btn-delete-module">删除</span>');
@@ -665,9 +687,13 @@ $(function () {
         pageModules.find('.btn-delete-module').remove();
         pageModules.each(function () {
             var children = $(this).children();
-            if (children.html() !== '点击编辑该行') {
-                children.insertBefore(this);
-            }
+            var self = this;
+            $.each(children, function (idx, item) {
+                item = $(item);
+                if (item.html() !== '点击编辑该行') {
+                    item.insertBefore(self);
+                }
+            });
             $(this).remove();
         });
     }
@@ -717,7 +743,13 @@ $(function () {
         }, function (res) {
             buttonArea.appendTo(document.body);
             if (res.code == 0) {
-                swal('操作提示', '页面保存成功！', 'success');
+                swal({
+                    title: '操作提示',
+                    text: '页面保存成功！',
+                    type: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
             } else {
                 swal('操作提示', '保存失败，请重试！', 'error');
             }
@@ -729,10 +761,10 @@ $(function () {
     $('<button class="btn-save">保存</button>').on('click', savePage).appendTo(bottomButtonArea);
     $('<button class="btn-newline">新建一行</button>').on('click', newLine).appendTo(bottomButtonArea);
 
-    var topButtonArea = $('<div class="edit-area edit-area-top"></div>').appendTo(document.body);
-    $('<button class="btn-edit">编辑</button>').on('click', toggleState).appendTo(topButtonArea);
-    $('<button class="btn-save">保存</button>').on('click', savePage).appendTo(topButtonArea);
-    $('<button class="btn-newline">新建一行</button>').on('click', newLine).appendTo(topButtonArea);
+    // var topButtonArea = $('<div class="edit-area edit-area-top"></div>').appendTo(document.body);
+    // $('<button class="btn-edit">编辑</button>').on('click', toggleState).appendTo(topButtonArea);
+    // $('<button class="btn-save">保存</button>').on('click', savePage).appendTo(topButtonArea);
+    // $('<button class="btn-newline">新建一行</button>').on('click', newLine).appendTo(topButtonArea);
 
     // 设置默认显示哪些编辑按钮
     var btnCfg = /[\?&]fn=([\w,]+)/gi.test(location.search) ? RegExp.$1.split(',') : [0, 1, 2];
@@ -755,4 +787,8 @@ $(function () {
     if ($(document.body).css('height')) {
         $(document.body).css('height', 'auto');
     }
+
+    window.savePage = savePage;
+    window.toggleState = toggleState;
+    window.newLine = newLine;
 });
