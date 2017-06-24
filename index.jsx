@@ -34,6 +34,12 @@ var ORIGIN_ARTICLE_PATH = '${config.ORIGIN_ARTICLE_PATH}';
 <!-- END EDITOR INJECT CODE -->`;
 // ============ 配置部分 END ============
 
+function getImgDir(req, fileName){
+    var dirName = req.get('referer').split('/articles/')[1].split('/');
+    dirName.pop();
+    return path.join(ARTICLE_SRC, dirName.join('/'), fileName);
+}
+
 
 // 静态资源
 const STATIC_PATH = __dirname + "/public";
@@ -129,16 +135,13 @@ app.get(/^\/articles\/(.+?\.html)$/, (req, res, next) => {
 app.post('/upload', function (req, res) {
     //接收前台POST过来的base64
     const imgData = req.body.data || '';
-    const refer = req.body.refer || '';
 
-    if (!imgData || !refer) {
+    if (!imgData) {
         return res.json({
             code: -1,
             msg: '参数错误'
         });
     }
-
-    const imgDir = path.dirname(refer).replace(/^\/articles/, '');
 
     //过滤data:URL
     let fileType = 'png';
@@ -147,11 +150,11 @@ app.post('/upload', function (req, res) {
         return '';
     });
     const fileName = Date.now() + ('' + Math.random()).substr(1) + '.' + fileType;
-    fs.writeFile(path.join(ARTICLE_SRC, imgDir, fileName), new Buffer(base64Data, 'base64'), function (err) {
+    fs.writeFile(getImgDir(req, fileName), new Buffer(base64Data, 'base64'), function (err) {
         if (err) {
             res.json({
                 code: -1,
-                msg: '上传失败'
+                msg: err.toString()
             });
         } else {
             res.json({
@@ -159,6 +162,20 @@ app.post('/upload', function (req, res) {
                 msg: fileName
             });
         }
+    });
+});
+
+// 删除图片
+app.post('/delimg', function(req, res){
+    var img = req.body.img;
+    img && img.split('|').forEach(img => {
+        img = getImgDir(req, img);
+        fs.existsSync(img) && fs.unlink(img);
+    });
+
+    res.json({
+        code: 0,
+        msg: '删除成功'
     });
 });
 
@@ -193,7 +210,7 @@ app.post('/save', function (req, res) {
             const $ = cheerio.load(html.toString());
             $('.n_title').html(title);
             $('title').html(title);
-            $('.n_content').html(content);
+            $('.n_content').html(content).css('word-break', 'break-all');
             html = $.html();
 
             if (isGbk) {
@@ -220,20 +237,20 @@ app.post('/save', function (req, res) {
     }
 });
 
+const TODOU_URL = 'https://ups.youku.com/ups/get.json?vid={vid}&ccode=0505&client_ip=0.0.0.0&client_ts=1491234773&utid=ACXYEMfZ%2BUACAXT3bTq%2BRp%2Fq';
 function getTudouVideo(vid, res) {
-    const videoUrl = 'https://ups.youku.com/ups/get.json?vid=' + vid + '&ccode=0505&client_ip=0.0.0.0&client_ts=1491234773&utid=ACXYEMfZ%20UACAXT3bTq%20Rp%2Fq';
-    fetch(videoUrl).then(res => res.json()).then(json => res.redirect(json.data.stream[0].m3u8_url)).catch(err => res.send(err.toString()));
+    fetch(TODOU_URL.replace(/\{vid\}/g, vid)).then(res => res.json()).then(json => res.redirect(json.data.stream[0].m3u8_url)).catch(err => res.send(err.toString()));
 }
 
 function getTudouPoster(vid, res) {
-    const videoUrl = 'https://ups.youku.com/ups/get.json?vid=' + vid + '&ccode=0505&client_ip=0.0.0.0&client_ts=1491234773&utid=ACXYEMfZ%20UACAXT3bTq%20Rp%2Fq';
-    fetch(videoUrl).then(res => res.json()).then(json => res.redirect(json.data.video.logo)).catch(err => res.send(err.toString()));
+    fetch(TODOU_URL.replace(/\{vid\}/g, vid)).then(res => res.json()).then(json => res.redirect(json.data.video.logo)).catch(err => res.send(err.toString()));
 }
 
 // 土豆地址跳转
 app.get('/tudou-video-url', function (req, res) {
     if (/\d{9}/.test(req.query.vid)) {
-        return fetch('http://video.tudou.com/v/' + req.query.vid).then(res => res.text())
+        return fetch('http://video.tudou.com/v/' + req.query.vid)
+            .then(res => res.text())
             .then(text => /viden: "([\w=]+==)"/.test(text) && getTudouVideo(RegExp.$1, res));
     }
 

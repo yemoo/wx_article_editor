@@ -234,6 +234,12 @@ $(function () {
             $('<p style="' + style + '">' + (html || '') + '</p>').data('style', style).insertAfter(this.activeSectionWrapper);
         },
         delete: function () {
+            var imgs = [];
+            this.activeSection.find('img.upload-img').each(function(idx, img){
+                imgs.push($(img).attr('src').split('/').pop())
+            });
+            $.post('/delimg', {img: imgs.join('|')});
+
             this.activeSection.remove();
             delete this.activeSection;
             this.close();
@@ -247,11 +253,19 @@ $(function () {
         }
     });
     /* ==== 区块处理 ==== */
-    var contentArea = $('.n_content');
+    var contentArea = $('.n_content').css('word-break', 'break-all');
     // 删除区块，按 p 为区块划分
     contentArea.on('click', '.btn-delete-module', function () {
         SECTION_EDITOR.close();
+
+        var imgs = [];
+        $(this).closest('.page-module').find('img.upload-img').each(function(idx, img){
+            imgs.push($(img).attr('src').split('/').pop())
+        });
+        $.post('/delimg', {img: imgs.join('|')});
+
         $(this).closest('.page-module').remove();
+
         if (contentArea.html().trim() === '') {
             newLine();
         }
@@ -486,9 +500,9 @@ $(function () {
                 var result = this.result;   //result为data url的形式
 
                 // 大于5M，直接拒绝
-                if (result.length > 0.5 * 1024 * 1024) {
-                    swal('上传提示', '您上传的图片过大，请上传不超过5M的图片！', 'error');
+                if (result.length > 5 * 1024 * 1024) {
                     hideLoading();
+                    swal('上传提示', '您上传的图片过大，请上传不超过5M的图片！', 'error');
                     return false;
                 }
 
@@ -496,19 +510,19 @@ $(function () {
                 EXIF.getData(file, function () {
                     processImg(result, EXIF.getTag(this, 'Orientation'), function (result) {
                         $.post('/upload', {
-                            refer: location.pathname,
                             data: result
                         }, function (data) {
                             hideLoading();
                             if (data.code == 0) {
-                                var imgUrl = location.href;
+                                var imgUrl = data.msg;
                                 if (window.ORIGIN_ARTICLE_PATH) {
-                                    imgUrl = window.ORIGIN_ARTICLE_PATH + location.href.split('articles/')[1]
+                                    imgUrl = window.ORIGIN_ARTICLE_PATH + location.href.split('articles/')[1];
+                                    imgUrl = imgUrl.split('/');
+                                    imgUrl.pop();
+                                    imgUrl.push(data.msg);
+                                    imgUrl = imgUrl.join('/');
                                 }
-                                imgUrl = imgUrl.split('/');
-                                imgUrl.pop();
-                                imgUrl.push(data.msg);
-                                imgUrl = imgUrl.join('/');
+
                                 preview.html('<img style="display: block;margin: 0px auto;" class="upload-img" src="' + imgUrl + '">');
                             } else {
                                 swal('上传提示', '上传失败，请重试！', 'error');
@@ -537,6 +551,9 @@ $(function () {
 
         //  删除图片
         imgEditor.header.on('click', '.btn-delete', function () {
+            $.post('/delimg', {
+                img: $('.upload-img').attr('src')
+            });
             preview.empty();
         });
         // 取消
@@ -589,11 +606,12 @@ $(function () {
         });
         // 提交
         videoEditor.footer.on('click', '.btn-submit', function () {
-            var videoUrl = /.*?(http:.+)$/.test(video.val()) && RegExp.$1;
+            var videoUrl = /.*?(https?:.+)$/.test(video.val()) && RegExp.$1;
             var posterUrl;
             var isMp4;
 
             var videoRoot = location.protocol + '//' + location.hostname + (location.port ? (':' + location.port) : '');
+            var height = 'auto';
             // 优酷
             if (videoUrl.indexOf('youku.com') > -1) {
                 if (/id_([\w=]+)\.html/.test(videoUrl)) {
@@ -619,6 +637,7 @@ $(function () {
             } else if (videoUrl.indexOf('v.qq.com') > -1) {
                 if (/\/(\w{11})\.html/.test(videoUrl) || /vid=(\w{11})/.test(videoUrl)) {
                     videoUrl = 'http://v.qq.com/iframe/player.html?vid=' + encodeURIComponent(RegExp.$1);
+                    height = '195px';
                 } else {
                     alert('你输入的腾讯视频地址无法解析！');
                     return false;
@@ -633,7 +652,7 @@ $(function () {
             if (isMp4) {
                 html = '<video src="' + videoUrl + '" preload="true" controls style="height: 240px;width: 100%;" preload="true" poster="' + posterUrl + '"></video>';
             } else {
-                html = '<iframe src="' + videoUrl + '" data-src="" frameborder="0" style="width: 100%;"></iframe>';
+                html = '<iframe src="' + videoUrl + '" data-src="" frameborder="0" style="width: 100%;height:' + height + '"></iframe>';
             }
 
             SECTION_EDITOR.add(html);
