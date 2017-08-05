@@ -611,7 +611,9 @@ $(function () {
             var isMp4;
 
             var videoRoot = location.protocol + '//' + location.hostname + (location.port ? (':' + location.port) : '');
-            var height = 'auto';
+            var ratio = 253 / 375;
+            var width = window.innerWidth || document.body.clientWidth;
+            var height = (width * ratio).toFixed(2);
             // 优酷
             if (videoUrl.indexOf('youku.com') > -1) {
                 if (/id_([\w=]+)\.html/.test(videoUrl)) {
@@ -637,7 +639,6 @@ $(function () {
             } else if (videoUrl.indexOf('v.qq.com') > -1) {
                 if (/\/(\w{11})\.html/.test(videoUrl) || /vid=(\w{11})/.test(videoUrl)) {
                     videoUrl = 'http://v.qq.com/iframe/player.html?vid=' + encodeURIComponent(RegExp.$1);
-                    height = '195px';
                 } else {
                     alert('你输入的腾讯视频地址无法解析！');
                     return false;
@@ -650,9 +651,9 @@ $(function () {
 
             var html;
             if (isMp4) {
-                html = '<video src="' + videoUrl + '" preload="true" controls style="height: 240px;width: 100%;" preload="true" poster="' + posterUrl + '"></video>';
+                html = '<video class="video-wrapper" data-ratio="' + ratio + '" src="' + videoUrl + '" preload="true" controls style="width: 100%;height:' + height + 'px" preload="true" poster="' + posterUrl + '"></video>';
             } else {
-                html = '<iframe src="' + videoUrl + '" data-src="" frameborder="0" style="width: 100%;height:' + height + '"></iframe>';
+                html = '<iframe class="video-wrapper" data-ratio="' + ratio + '" src="' + videoUrl + '" data-src="" frameborder="0" style="width: 100%;height:' + height + 'px"></iframe>';
             }
 
             SECTION_EDITOR.add(html);
@@ -662,6 +663,15 @@ $(function () {
             SECTION_EDITOR.close();
         });
     }());
+    window.onresize = function(){
+        $('.video-wrapper').each(function(){
+            var item = $(this);
+            var ratio = item.data('ratio');
+            var width = window.innerWidth || document.body.clientWidth;
+            var height = (width * ratio).toFixed(2);
+            item.css('height', height);
+        });
+    };
 
     var isEdit = false;
 
@@ -677,6 +687,8 @@ $(function () {
         if (isEdit) return;
         isEdit = true;
 
+        // 便于提醒用户标题可编辑
+        $('.n_title').addClass('page-module');
         if (contentArea.html().trim() === '') {
             newLine();
         } else {
@@ -698,6 +710,8 @@ $(function () {
     function cancelEdit() {
         if (!isEdit) return false;
         isEdit = false;
+
+        $('.n_title').removeClass('page-module');
 
         textEditor.close();
         SECTION_EDITOR.close();
