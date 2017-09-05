@@ -688,14 +688,14 @@ $(function () {
         isEdit = true;
 
         // 便于提醒用户标题可编辑
-        $('.n_title').addClass('page-module');
+        $('.n_title').addClass('title-edit');
         if (contentArea.html().trim() === '') {
             newLine();
         } else {
             var editArea = contentArea;
             do {
                 editArea = editArea.find(' > *');
-            } while (editArea.length == 1 && editArea.children().length)
+            } while (editArea.length == 1 && editArea.children().length > 1)
 
             // 区块处理：通过 page-module 标识，增加删除按钮
             editArea.each(function () {
@@ -711,7 +711,7 @@ $(function () {
         if (!isEdit) return false;
         isEdit = false;
 
-        $('.n_title').removeClass('page-module');
+        $('.n_title').removeClass('title-edit');
 
         textEditor.close();
         SECTION_EDITOR.close();

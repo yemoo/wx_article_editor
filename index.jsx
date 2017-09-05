@@ -207,7 +207,7 @@ app.post('/save', function (req, res) {
                 html = iconv.encode(html, 'UTF8');
             }
 
-            const $ = cheerio.load(html.toString());
+            const $ = cheerio.load(html.toString(), {decodeEntities: false});
             $('.n_title').html(title);
             $('title').html(title);
             $('.n_content').html(content).css('word-break', 'break-all');

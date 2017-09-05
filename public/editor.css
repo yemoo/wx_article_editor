@@ -2,7 +2,7 @@ body{
     padding-bottom: 80px;
     /*padding-top: 80px;*/
 }
-.page-module{
+.page-module, .title-edit{
     border: 1px dashed #c9c9c9;
     box-sizing: border-box;
     margin-top: -1px;
@@ -367,6 +367,7 @@ body{
     left: auto;
     right: 0;
     background-image: url('/save.png');
+    display: none;
 }
 
 .edit-area-top .btn-edit,
